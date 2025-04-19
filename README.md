@@ -2,13 +2,13 @@
 
 Real-time earthquake monitoring and alert system that keeps you informed about seismic activities worldwide.
 
-## CSS Palette
+## Color Palette
 
-#3D0814
-#E7F9A9
-#C6B38E
-#9A9B73
-#442F38
+--bittersweet: #ef6461ff;
+--earth-yellow: #e4b363ff;
+--antiflash-white: #e8e9ebff;
+--alabaster: #e0dfd5ff;
+--onyx: #313638ff;
 
 ## Features
 
@@ -24,6 +24,79 @@ Real-time earthquake monitoring and alert system that keeps you informed about s
 - Automatic data refresh every 5 minutes
 
 ## Changelog
+
+### [0.5.7] - 2024-03-19
+- Refactored earthquake API endpoints to use shared functionality
+- Enhanced earthquake data filtering with time and magnitude ranges
+- Improved error handling and logging for API requests
+- Added support for limiting the number of returned earthquakes
+- Optimized USGS API integration
+
+### [0.5.6] - 2024-03-19
+- Added new alerts page
+- Added latest earthquake display with magnitude focus
+- Implemented alert settings with localStorage
+- Added push notification support
+- Enhanced alert display with animations
+- Added daily earthquake tracking
+- Added proper error handling and logging
+
+### [0.5.5] - 2024-03-19
+- Updated color scheme to new palette
+- Enhanced visibility of magnitude indicators
+- Improved contrast for better readability
+- Updated UI elements with new colors
+- Maintained map background colors
+- Enhanced tooltip and hover state colors
+
+### [0.5.4] - 2024-03-19
+- Improved magnitude indicator visibility
+- Updated magnitude colors to use lighter palette
+- Enhanced magnitude glow effects
+- Added progressive intensity for higher magnitudes
+- Implemented alternating colors for better distinction
+
+### [0.5.3] - 2024-03-19
+- Fixed world map display issues
+- Added dynamic SVG map loading
+- Improved map container structure
+- Enhanced map styling and responsiveness
+- Added proper error handling for map loading
+- Improved map integration with markers
+
+### [0.5.2] - 2024-03-19
+- Fixed filter refresh functionality
+- Enhanced event listeners for all filter controls
+- Added debug logging for filter changes
+- Improved debounce function reliability
+- Fixed API request triggering
+- Added proper filter validation before updates
+
+### [0.5.1] - 2024-03-19
+- Removed Apply Filters button in favor of automatic updates
+- Implemented real-time filter updates with debouncing
+- Enhanced filter persistence and loading
+- Improved user experience with immediate feedback
+- Optimized API calls with 300ms debounce
+- Maintained filter state across page reloads
+
+### [0.5.0] - 2024-03-19
+- Added real-time earthquake count display
+- Enhanced filter functionality with automatic updates
+- Added debouncing for filter changes
+- Improved page title with earthquake count
+- Added loading and error states for data fetching
+- Removed manual filter apply button in favor of automatic updates
+- Enhanced user feedback during data loading
+
+### [0.4.9] - 2024-03-19
+- Added comprehensive filter section to map page
+- Implemented radius filter with 10-20,037km range
+- Added duration filter with multiple time periods
+- Added magnitude range filter with min/max controls
+- Added filter persistence using localStorage
+- Enhanced API integration with filter parameters
+- Improved user interface with consistent styling
 
 ### [0.4.8] - 2024-03-19
 - Enhanced API data validation and error handling
