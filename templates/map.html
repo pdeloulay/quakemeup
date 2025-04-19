@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Earthquake Map - QuakeMeUp</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .earthquake-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #E7F9A9; /* Light green from palette */
+            border: 2px solid #9A9B73; /* Olive green border */
+            border-radius: 50%;
+            animation: markerPulse 2s infinite;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(231, 249, 169, 0.5); /* Light green glow */
+        }
+
+        @keyframes markerPulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+                box-shadow: 0 0 10px rgba(231, 249, 169, 0.5);
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.7;
+                box-shadow: 0 0 20px rgba(231, 249, 169, 0.3);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+                box-shadow: 0 0 10px rgba(231, 249, 169, 0.5);
+            }
+        }
+
+        .world-map {
+            background-image: linear-gradient(rgba(68, 47, 56, 0.3), rgba(68, 47, 56, 0.3)), 
+                            url('/static/images/world-map.svg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 60vh;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #9A9B73; /* Olive green border */
+        }
+
+        .earthquake-list {
+            max-height: 60vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #9A9B73 #442F38; /* Olive green scrollbar */
+        }
+
+        .earthquake-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .earthquake-list::-webkit-scrollbar-track {
+            background: #442F38;
+        }
+
+        .earthquake-list::-webkit-scrollbar-thumb {
+            background-color: #9A9B73;
+            border-radius: 4px;
+        }
+
+        .earthquake-item {
+            transition: all 0.3s ease;
+            border: 1px solid #9A9B73; /* Olive green border */
+        }
+
+        .earthquake-item:hover {
+            transform: translateX(5px);
+            background-color: rgba(231, 249, 169, 0.1); /* Light green with opacity */
+            border-color: #E7F9A9; /* Light green border on hover */
+        }
+
+        .magnitude-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #3D0814; /* Dark red text */
+            border: 2px solid #9A9B73; /* Olive green border */
+        }
+
+        .magnitude-1 { 
+            background-color: #E7F9A9; /* Light green */
+            box-shadow: 0 0 10px rgba(231, 249, 169, 0.3);
+        }
+        .magnitude-2 { 
+            background-color: #9A9B73; /* Olive green */
+            box-shadow: 0 0 10px rgba(154, 155, 115, 0.3);
+        }
+        .magnitude-3 { 
+            background-color: #C6B38E; /* Tan */
+            box-shadow: 0 0 10px rgba(198, 179, 142, 0.3);
+        }
+        .magnitude-4 { 
+            background-color: #442F38; /* Dark purple */
+            box-shadow: 0 0 10px rgba(68, 47, 56, 0.3);
+        }
+        .magnitude-5 { 
+            background-color: #3D0814; /* Dark red */
+            box-shadow: 0 0 10px rgba(61, 8, 20, 0.3);
+        }
+        .magnitude-6 { 
+            background-color: #3D0814; /* Dark red */
+            box-shadow: 0 0 15px rgba(61, 8, 20, 0.4);
+        }
+        .magnitude-7 { 
+            background-color: #3D0814; /* Dark red */
+            box-shadow: 0 0 20px rgba(61, 8, 20, 0.5);
+        }
+        .magnitude-8 { 
+            background-color: #3D0814; /* Dark red */
+            box-shadow: 0 0 25px rgba(61, 8, 20, 0.6);
+        }
+
+        .user-location-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #E7F9A9;
+            border: 2px solid #9A9B73;
+            border-radius: 50%;
+            z-index: 20;
+            box-shadow: 0 0 10px rgba(231, 249, 169, 0.5);
+        }
+
+        .user-location-pulse {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(231, 249, 169, 0.3);
+            border-radius: 50%;
+            z-index: 15;
+            animation: userPulse 2s infinite;
+        }
+
+        @keyframes userPulse {
+            0% {
+                transform: scale(0.5);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1);
+                opacity: 0.2;
+            }
+            100% {
+                transform: scale(0.5);
+                opacity: 0.5;
+            }
+        }
+
+        /* Tooltip styling */
+        .earthquake-tooltip {
+            position: absolute;
+            background-color: #442F38;
+            border: 2px solid #9A9B73;
+            border-radius: 8px;
+            padding: 12px;
+            color: #E7F9A9;
+            font-size: 14px;
+            min-width: 200px;
+            max-width: 300px;
+            z-index: 20;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .earthquake-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .earthquake-tooltip h3 {
+            color: #C6B38E;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .earthquake-tooltip p {
+            margin: 4px 0;
+        }
+
+        .earthquake-tooltip .magnitude {
+            font-weight: bold;
+            color: #E7F9A9;
+        }
+
+        .earthquake-tooltip .time {
+            font-style: italic;
+            color: #C6B38E;
+        }
+    </style>
+</head>
+<body class="bg-[#3D0814] text-[#E7F9A9]">
+    <!-- Navigation -->
+    <nav class="bg-[#442F38] p-4 border-b border-[#9A9B73]">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-2xl font-bold">QuakeMeUp</a>
+            <div class="space-x-6">
+                <a href="/" class="hover:text-[#E7F9A9] transition-colors">Home</a>
+                <a href="/map" class="text-[#E7F9A9]">Map</a>
+                <a href="#" class="hover:text-[#E7F9A9] transition-colors">Alerts</a>
+                <a href="#" class="hover:text-[#E7F9A9] transition-colors">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Map Section -->
+            <div class="md:col-span-2">
+                <div class="world-map rounded-lg overflow-hidden">
+                    <div id="earthquakeMarkers"></div>
+                    {{if .HasLocation}}
+                    <div id="userLocationMarker" class="user-location-marker"></div>
+                    <div id="userLocationPulse" class="user-location-pulse"></div>
+                    {{end}}
+                </div>
+            </div>
+
+            <!-- Earthquake List -->
+            <div class="bg-[#442F38] rounded-lg p-4 border border-[#9A9B73]">
+                <h2 class="text-xl font-bold mb-4">
+                    {{if .HasLocation}}
+                    Recent Earthquakes ({{.Radius}}km radius)
+                    {{else}}
+                    Recent Earthquakes (24h)
+                    {{end}}
+                </h2>
+                <div class="earthquake-list">
+                    <div id="earthquakeList" class="space-y-2">
+                        <!-- Earthquake items will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-[#442F38] text-center p-6 mt-8 border-t border-[#9A9B73]">
+        <div class="container mx-auto">
+            <div class="flex justify-center space-x-6 mb-4">
+                <a href="/privacy" class="hover:text-[#E7F9A9] transition-colors">Privacy Policy</a>
+                <a href="/terms" class="hover:text-[#E7F9A9] transition-colors">Terms of Service</a>
+            </div>
+            <p>&copy; 2025 QuakeMeUp. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Function to get magnitude class
+        function getMagnitudeClass(magnitude) {
+            const mag = Math.floor(magnitude);
+            return `magnitude-${Math.min(Math.max(mag, 1), 8)}`;
+        }
+
+        // Function to convert coordinates to map position
+        function coordinatesToPosition(lat, lng) {
+            const x = ((lng + 180) / 360) * 100;
+            const y = ((90 - lat) / 180) * 100;
+            return { x, y };
+        }
+
+        // Function to create earthquake marker
+        function createEarthquakeMarker(quake) {
+            const { x, y } = coordinatesToPosition(quake.latitude, quake.longitude);
+            const marker = document.createElement('div');
+            marker.className = 'earthquake-marker';
+            marker.style.left = `${x}%`;
+            marker.style.top = `${y}%`;
+            
+            // Create tooltip with validated data
+            const tooltip = document.createElement('div');
+            tooltip.className = 'earthquake-tooltip';
+            tooltip.innerHTML = `
+                <h3>Earthquake Details</h3>
+                <p><span class="magnitude">Magnitude:</span> ${quake.mag}</p>
+                <p><span class="magnitude">Location:</span> ${quake.place}</p>
+                <p><span class="magnitude">Depth:</span> ${quake.depth || 'N/A'} km</p>
+                <p class="time">${new Date(quake.time).toLocaleString()}</p>
+            `;
+            
+            // Position tooltip
+            tooltip.style.left = `${x + 2}%`;
+            tooltip.style.top = `${y - 2}%`;
+            
+            // Add hover events
+            marker.addEventListener('mouseenter', () => {
+                tooltip.classList.add('visible');
+            });
+            
+            marker.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('visible');
+            });
+            
+            // Add to map
+            const map = document.querySelector('.world-map');
+            map.appendChild(marker);
+            map.appendChild(tooltip);
+            
+            return marker;
+        }
+
+        // Function to create earthquake list item
+        function createEarthquakeListItem(quake) {
+            const item = document.createElement('div');
+            item.className = 'earthquake-item p-3 rounded-lg bg-gray-700 flex items-center space-x-4';
+            
+            const magnitude = document.createElement('div');
+            magnitude.className = `magnitude-indicator ${getMagnitudeClass(quake.mag)}`;
+            magnitude.textContent = quake.mag;
+            
+            const details = document.createElement('div');
+            details.className = 'flex-1';
+            
+            const place = document.createElement('div');
+            place.className = 'font-medium';
+            place.textContent = quake.place;
+            
+            const time = document.createElement('div');
+            time.className = 'text-sm text-gray-400';
+            time.textContent = new Date(quake.time).toLocaleString();
+            
+            details.appendChild(place);
+            details.appendChild(time);
+            
+            item.appendChild(magnitude);
+            item.appendChild(details);
+            
+            return item;
+        }
+
+        // Function to fetch and display earthquakes
+        async function fetchEarthquakes() {
+            try {
+                const response = await fetch('/api/quakes');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('API Response:', data); // Debug log
+
+                const markersContainer = document.getElementById('earthquakeMarkers');
+                const listContainer = document.getElementById('earthquakeList');
+                
+                // Clear existing content
+                markersContainer.innerHTML = '';
+                listContainer.innerHTML = '';
+                
+                // Validate and process earthquake data
+                if (Array.isArray(data)) {
+                    data.forEach(quake => {
+                        // Log each earthquake object for debugging
+                        console.log('Processing earthquake:', quake);
+                                                    
+                        // Create and add marker and list item
+                        markersContainer.appendChild(createEarthquakeMarker(quake));
+                        listContainer.appendChild(createEarthquakeListItem(quake));
+
+                    });
+                } else {
+                    console.error('Invalid earthquake data format:', data);
+                    throw new Error('Invalid data format received from API');
+                }
+            } catch (error) {
+                console.error('Error fetching earthquakes:', error);
+                // Display error message to user
+                const listContainer = document.getElementById('earthquakeList');
+                if (listContainer) {
+                    listContainer.innerHTML = `
+                        <div class="text-center p-4 text-red-400">
+                            <p>Error loading earthquake data. Please try again later.</p>
+                            <p class="text-sm">${error.message}</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Function to position user location marker
+        function positionUserLocationMarker() {
+            const marker = document.getElementById('userLocationMarker');
+            const pulse = document.getElementById('userLocationPulse');
+            if (marker && pulse) {
+                const { x, y } = coordinatesToPosition({{.UserLat}}, {{.UserLng}});
+                marker.style.left = `${x}%`;
+                marker.style.top = `${y}%`;
+                pulse.style.left = `${x}%`;
+                pulse.style.top = `${y}%`;
+                marker.title = `Your Location\nLat: {{.UserLat}}\nLng: {{.UserLng}}`;
+            }
+        }
+
+        // Initial setup
+        document.addEventListener('DOMContentLoaded', () => {
+            positionUserLocationMarker();
+            fetchEarthquakes();
+        });
+    </script>
+</body>
+</html> 

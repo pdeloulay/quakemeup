@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{.Title}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Earthquake pulse animation */
+        .earthquake-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7);
+            }
+            
+            70% {
+                transform: scale(1.2);
+                box-shadow: 0 0 0 20px rgba(255, 82, 82, 0);
+            }
+            
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(255, 82, 82, 0);
+            }
+        }
+
+        /* Earthquake location markers */
+        .earthquake-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #ff5252;
+            border-radius: 50%;
+            animation: markerPulse 2s infinite;
+            z-index: 10;
+        }
+
+        @keyframes markerPulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(2);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* World map styling */
+        .world-map {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
+                            url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1000"><path fill="%23222" d="M0 0h2000v1000H0z"/><path fill="%23333" d="M0 0h2000v1000H0z" transform="scale(.5)"/><path fill="%23444" d="M0 0h2000v1000H0z" transform="scale(.25)"/><path fill="%23555" d="M0 0h2000v1000H0z" transform="scale(.125)"/><path fill="%23666" d="M0 0h2000v1000H0z" transform="scale(.0625)"/><path fill="%23777" d="M0 0h2000v1000H0z" transform="scale(.03125)"/><path fill="%23888" d="M0 0h2000v1000H0z" transform="scale(.015625)"/><path fill="%23999" d="M0 0h2000v1000H0z" transform="scale(.0078125)"/><path fill="%23aaa" d="M0 0h2000v1000H0z" transform="scale(.00390625)"/><path fill="%23bbb" d="M0 0h2000v1000H0z" transform="scale(.001953125)"/><path fill="%23ccc" d="M0 0h2000v1000H0z" transform="scale(.0009765625)"/><path fill="%23ddd" d="M0 0h2000v1000H0z" transform="scale(.00048828125)"/><path fill="%23eee" d="M0 0h2000v1000H0z" transform="scale(.000244140625)"/><path fill="%23fff" d="M0 0h2000v1000H0z" transform="scale(.0001220703125)"/></svg>');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 60vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (max-width: 640px) {
+            .world-map {
+                min-height: 40vh;
+            }
+        }
+
+        /* Mobile menu animation */
+        .mobile-menu {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .mobile-menu.hidden {
+            transform: translateX(-100%);
+        }
+
+        /* Feature card animations */
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Earthquake wave animation */
+        .earthquake-wave {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 82, 82, 0.3);
+            animation: wave 3s infinite;
+            z-index: 5;
+        }
+
+        @keyframes wave {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Text animations */
+        .animate-fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 1s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Mobile-friendly Navigation -->
+    <nav class="bg-gray-800 p-4 relative">
+        <div class="container mx-auto">
+            <!-- Desktop Navigation -->
+            <div class="hidden md:flex justify-between items-center">
+                <h1 class="text-2xl font-bold">QuakeMeUp</h1>
+                <div class="space-x-6">
+                    <a href="#" class="hover:text-red-400 transition-colors">Home</a>
+                    <a href="/map" class="hover:text-red-400 transition-colors">Map</a>
+                    <a href="/alerts" class="hover:text-red-400 transition-colors">Alerts</a>
+                    <a href="/about" class="hover:text-red-400 transition-colors">About</a>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <div class="md:hidden flex justify-between items-center">
+                <h1 class="text-xl font-bold">QuakeMeUp</h1>
+                <button id="menuButton" class="text-white focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Mobile Menu Dropdown -->
+            <div id="mobileMenu" class="hidden md:hidden absolute top-full left-0 right-0 bg-gray-800 z-50">
+                <div class="flex flex-col space-y-4 p-4">
+                    <a href="#" class="hover:text-red-400 transition-colors">Home</a>
+                    <a href="#" class="hover:text-red-400 transition-colors">Map</a>
+                    <a href="#" class="hover:text-red-400 transition-colors">Alerts</a>
+                    <a href="#" class="hover:text-red-400 transition-colors">About</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section with Animated Earthquake Markers -->
+    <div class="relative overflow-hidden">
+        <div class="world-map">
+            <!-- Animated Earthquake Markers -->
+            <div class="earthquake-marker" style="top: 20%; left: 30%;"></div>
+            <div class="earthquake-marker" style="top: 40%; left: 60%;"></div>
+            <div class="earthquake-marker" style="top: 70%; left: 40%;"></div>
+            <div class="earthquake-wave" style="top: 20%; left: 30%;"></div>
+            <div class="earthquake-wave" style="top: 40%; left: 60%;"></div>
+            <div class="earthquake-wave" style="top: 70%; left: 40%;"></div>
+
+            <div class="absolute inset-0 bg-black bg-opacity-30">
+                <div class="container mx-auto px-4 py-12 md:py-24">
+                    <div class="max-w-3xl">
+                        <h1 class="text-3xl md:text-5xl font-bold mb-4 md:mb-6 animate-fade-in">Real-time Earthquake Monitoring</h1>
+                        <p class="text-lg md:text-xl mb-6 md:mb-8 animate-fade-in-up">Stay informed about seismic activities worldwide with real-time alerts and monitoring.</p>
+                        <button id="enableLocationBtn" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg earthquake-pulse transition-colors">
+                            Enable Location Alerts
+                        </button>
+                        <div id="locationStatus" class="mt-4 text-sm text-gray-300 hidden">
+                            <p>Location access: <span id="locationAccessStatus">Not enabled</span></p>
+                            <p>Your location: <span id="userLocation">Not available</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location Settings Section -->
+    <div class="container mx-auto px-4 py-12">
+        <div class="bg-gray-800 rounded-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">Location Settings</h2>
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <input type="checkbox" id="enableAlerts" class="w-4 h-4 text-red-600 rounded focus:ring-red-500">
+                    <label for="enableAlerts" class="ml-2 text-gray-300">Enable earthquake alerts for my location</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="enablePush" class="w-4 h-4 text-red-600 rounded focus:ring-red-500">
+                    <label for="enablePush" class="ml-2 text-gray-300">Enable push notifications</label>
+                </div>
+                <div class="mt-4">
+                    <label class="block text-gray-300 mb-2">Alert Radius (km)</label>
+                    <input type="range" id="alertRadius" min="10" max="20037" value="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between text-sm text-gray-400">
+                        <span>10 km</span>
+                        <span id="radiusValue">100 km</span>
+                        <span>20,037 km (Half Earth)</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mt-2">
+                        The maximum radius is set to half the Earth's circumference (20,037 km) to ensure global coverage.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container mx-auto px-4 py-12 md:py-16">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            <div class="feature-card bg-gray-800 p-6 rounded-lg">
+                <div class="flex flex-col items-center text-center">
+                    <svg class="w-16 h-16 mb-4 text-red-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <h3 class="text-xl font-bold mb-3">Real-time Monitoring</h3>
+                    <p class="text-gray-300">Get instant updates on seismic activities worldwide with our advanced monitoring system.</p>
+                </div>
+            </div>
+            <div class="feature-card bg-gray-800 p-6 rounded-lg">
+                <div class="flex flex-col items-center text-center">
+                    <svg class="w-16 h-16 mb-4 text-red-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <h3 class="text-xl font-bold mb-3">Location-based Alerts</h3>
+                    <p class="text-gray-300">Receive personalized alerts based on your location and preferred notification settings.</p>
+                </div>
+            </div>
+            <div class="feature-card bg-gray-800 p-6 rounded-lg">
+                <div class="flex flex-col items-center text-center">
+                    <svg class="w-16 h-16 mb-4 text-red-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
+                    </svg>
+                    <h3 class="text-xl font-bold mb-3">Global Coverage</h3>
+                    <p class="text-gray-300">Access data from seismic stations worldwide for comprehensive earthquake monitoring.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-center p-6 mt-8">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <p>&copy; 2024 QuakeMeUp. All rights reserved.</p>
+                <div class="flex space-x-4">
+                    <a href="#" class="hover:text-red-400 transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-red-400 transition-colors">Terms of Service</a>
+                    <a href="#" class="hover:text-red-400 transition-colors">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Menu JavaScript -->
+    <script>
+        const menuButton = document.getElementById('menuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        menuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!menuButton.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+
+        // Add random earthquake markers
+        function addRandomEarthquakeMarker() {
+            const worldMap = document.querySelector('.world-map');
+            const marker = document.createElement('div');
+            marker.className = 'earthquake-marker';
+            marker.style.top = Math.random() * 100 + '%';
+            marker.style.left = Math.random() * 100 + '%';
+            
+            const wave = document.createElement('div');
+            wave.className = 'earthquake-wave';
+            wave.style.top = marker.style.top;
+            wave.style.left = marker.style.left;
+            
+            worldMap.appendChild(marker);
+            worldMap.appendChild(wave);
+            
+            setTimeout(() => {
+                marker.remove();
+                wave.remove();
+            }, 3000);
+        }
+
+        // Add earthquake markers periodically
+        setInterval(addRandomEarthquakeMarker, 5000);
+    </script>
+
+    <!-- Geolocation and Alerts JavaScript -->
+    <script>
+        // Location status elements
+        const locationStatus = document.getElementById('locationStatus');
+        const locationAccessStatus = document.getElementById('locationAccessStatus');
+        const userLocation = document.getElementById('userLocation');
+        const enableLocationBtn = document.getElementById('enableLocationBtn');
+        const alertRadius = document.getElementById('alertRadius');
+        const radiusValue = document.getElementById('radiusValue');
+
+        // Update radius display
+        alertRadius.addEventListener('input', () => {
+            const value = parseInt(alertRadius.value);
+            radiusValue.textContent = `${value.toLocaleString()} km`;
+            
+            // Store the radius in localStorage
+            const savedLocation = localStorage.getItem('userLocation');
+            if (savedLocation) {
+                const locationData = JSON.parse(savedLocation);
+                locationData.radius = value;
+                localStorage.setItem('userLocation', JSON.stringify(locationData));
+            }
+        });
+
+        // Handle location permission
+        enableLocationBtn.addEventListener('click', () => {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        locationAccessStatus.textContent = "Enabled";
+                        userLocation.textContent = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                        locationStatus.classList.remove('hidden');
+                        
+                        // Store location in localStorage
+                        localStorage.setItem('userLocation', JSON.stringify({
+                            lat: latitude,
+                            lng: longitude,
+                            timestamp: new Date().toISOString()
+                        }));
+
+                        // Send location to server (you'll need to implement this endpoint)
+                        sendLocationToServer(latitude, longitude);
+                    },
+                    (error) => {
+                        console.error("Error getting location:", error);
+                        locationAccessStatus.textContent = "Error: " + error.message;
+                        locationStatus.classList.remove('hidden');
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                locationAccessStatus.textContent = "Not supported";
+                locationStatus.classList.remove('hidden');
+            }
+        });
+
+        // Function to send location to server
+        function sendLocationToServer(latitude, longitude) {
+            const radius = parseInt(alertRadius.value);
+            fetch('/api/location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    latitude,
+                    longitude,
+                    radius: radius,
+                    enableAlerts: document.getElementById('enableAlerts').checked,
+                    enablePush: document.getElementById('enablePush').checked
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Location saved:', data);
+            })
+            .catch(error => {
+                console.error('Error saving location:', error);
+            });
+        }
+
+        // Check for existing location and radius
+        const savedLocation = localStorage.getItem('userLocation');
+        if (savedLocation) {
+            const { lat, lng, radius } = JSON.parse(savedLocation);
+            locationAccessStatus.textContent = "Enabled";
+            userLocation.textContent = `${parseFloat(lat).toFixed(4)}, ${parseFloat(lng).toFixed(4)}`;
+            locationStatus.classList.remove('hidden');
+            
+            // Set the radius slider to the saved value
+            if (radius) {
+                alertRadius.value = radius;
+                radiusValue.textContent = `${radius.toLocaleString()} km`;
+            }
+        }
+
+        // Request notification permission
+        document.getElementById('enablePush').addEventListener('change', function(e) {
+            if (e.target.checked) {
+                Notification.requestPermission().then(permission => {
+                    if (permission !== 'granted') {
+                        e.target.checked = false;
+                        alert('Please enable notifications in your browser settings to receive alerts.');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html> 
