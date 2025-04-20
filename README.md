@@ -25,6 +25,11 @@ Real-time earthquake monitoring and alert system that keeps you informed about s
 
 ## Changelog
 
+### [0.5.8] - 2024-03-19
+- Removed Location Settings section from home page
+- Simplified home page interface
+- Improved page focus on core features
+
 ### [0.5.7] - 2024-03-19
 - Refactored earthquake API endpoints to use shared functionality
 - Enhanced earthquake data filtering with time and magnitude ranges

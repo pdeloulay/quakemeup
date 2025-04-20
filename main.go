@@ -164,6 +164,16 @@ func main() {
 		tmpl.Execute(w, nil)
 	})
 
+	// About page
+	http.HandleFunc("/about", func(w http.ResponseWriter, r *http.Request) {
+		tmpl, err := template.ParseFiles("templates/about.html")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		tmpl.Execute(w, nil)
+	})
+
 	// API endpoint for earthquakes
 	http.HandleFunc("/api/quakes", quakesHandler)
 
@@ -171,7 +181,7 @@ func main() {
 	http.HandleFunc("/api/location", handleLocation)
 
 	// Alert handler
-	http.HandleFunc("/alerts", alertHandler)
+	http.HandleFunc("/latest", alertHandler)
 
 	// Start server
 	port := 8080
@@ -370,7 +380,7 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 	latestQuake := earthquakes[0]
 
 	// Render alert template
-	tmpl := template.Must(template.ParseFiles("templates/alert.html"))
+	tmpl := template.Must(template.ParseFiles("templates/alerts.html"))
 	err = tmpl.Execute(w, latestQuake)
 	if err != nil {
 		log.Printf("Error executing template: %v", err)

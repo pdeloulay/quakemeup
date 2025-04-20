@@ -37,6 +37,7 @@
             border-radius: 50%;
             animation: markerPulse 2s infinite;
             z-index: 10;
+            box-shadow: 0 0 10px rgba(255, 82, 82, 0.8);
         }
 
         @keyframes markerPulse {
@@ -56,14 +57,15 @@
 
         /* World map styling */
         .world-map {
-            background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
-                            url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1000"><path fill="%23222" d="M0 0h2000v1000H0z"/><path fill="%23333" d="M0 0h2000v1000H0z" transform="scale(.5)"/><path fill="%23444" d="M0 0h2000v1000H0z" transform="scale(.25)"/><path fill="%23555" d="M0 0h2000v1000H0z" transform="scale(.125)"/><path fill="%23666" d="M0 0h2000v1000H0z" transform="scale(.0625)"/><path fill="%23777" d="M0 0h2000v1000H0z" transform="scale(.03125)"/><path fill="%23888" d="M0 0h2000v1000H0z" transform="scale(.015625)"/><path fill="%23999" d="M0 0h2000v1000H0z" transform="scale(.0078125)"/><path fill="%23aaa" d="M0 0h2000v1000H0z" transform="scale(.00390625)"/><path fill="%23bbb" d="M0 0h2000v1000H0z" transform="scale(.001953125)"/><path fill="%23ccc" d="M0 0h2000v1000H0z" transform="scale(.0009765625)"/><path fill="%23ddd" d="M0 0h2000v1000H0z" transform="scale(.00048828125)"/><path fill="%23eee" d="M0 0h2000v1000H0z" transform="scale(.000244140625)"/><path fill="%23fff" d="M0 0h2000v1000H0z" transform="scale(.0001220703125)"/></svg>');
+            background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), 
+                            url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1000"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="%23444" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="%23222"/><rect width="100%" height="100%" fill="url(%23grid)"/><circle cx="1000" cy="500" r="400" fill="none" stroke="%23444" stroke-width="2"/><circle cx="1000" cy="500" r="300" fill="none" stroke="%23444" stroke-width="2"/><circle cx="1000" cy="500" r="200" fill="none" stroke="%23444" stroke-width="2"/><circle cx="1000" cy="500" r="100" fill="none" stroke="%23444" stroke-width="2"/></svg>');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             min-height: 60vh;
             position: relative;
             overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         @media (max-width: 640px) {
@@ -95,9 +97,10 @@
         .earthquake-wave {
             position: absolute;
             border-radius: 50%;
-            background: rgba(255, 82, 82, 0.3);
+            background: rgba(255, 82, 82, 0.4);
             animation: wave 3s infinite;
             z-index: 5;
+            box-shadow: 0 0 10px rgba(255, 82, 82, 0.4);
         }
 
         @keyframes wave {
@@ -146,8 +149,7 @@
                 <h1 class="text-2xl font-bold">QuakeMeUp</h1>
                 <div class="space-x-6">
                     <a href="#" class="hover:text-red-400 transition-colors">Home</a>
-                    <a href="/map" class="hover:text-red-400 transition-colors">Map</a>
-                    <a href="/alerts" class="hover:text-red-400 transition-colors">Alerts</a>
+                    <a href="/latest" class="hover:text-red-400 transition-colors">Latest</a>
                     <a href="/about" class="hover:text-red-400 transition-colors">About</a>
                 </div>
             </div>
@@ -203,35 +205,6 @@
         </div>
     </div>
 
-    <!-- Location Settings Section -->
-    <div class="container mx-auto px-4 py-12">
-        <div class="bg-gray-800 rounded-lg p-6">
-            <h2 class="text-2xl font-bold mb-4">Location Settings</h2>
-            <div class="space-y-4">
-                <div class="flex items-center">
-                    <input type="checkbox" id="enableAlerts" class="w-4 h-4 text-red-600 rounded focus:ring-red-500">
-                    <label for="enableAlerts" class="ml-2 text-gray-300">Enable earthquake alerts for my location</label>
-                </div>
-                <div class="flex items-center">
-                    <input type="checkbox" id="enablePush" class="w-4 h-4 text-red-600 rounded focus:ring-red-500">
-                    <label for="enablePush" class="ml-2 text-gray-300">Enable push notifications</label>
-                </div>
-                <div class="mt-4">
-                    <label class="block text-gray-300 mb-2">Alert Radius (km)</label>
-                    <input type="range" id="alertRadius" min="10" max="20037" value="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
-                    <div class="flex justify-between text-sm text-gray-400">
-                        <span>10 km</span>
-                        <span id="radiusValue">100 km</span>
-                        <span>20,037 km (Half Earth)</span>
-                    </div>
-                    <p class="text-sm text-gray-400 mt-2">
-                        The maximum radius is set to half the Earth's circumference (20,037 km) to ensure global coverage.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Features Section -->
     <div class="container mx-auto px-4 py-12 md:py-16">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
@@ -270,11 +243,11 @@
     <footer class="bg-gray-800 text-center p-6 mt-8">
         <div class="container mx-auto">
             <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                <p>&copy; 2024 QuakeMeUp. All rights reserved.</p>
+                <p>&copy; 2025 QuakeMeUp. All rights reserved.</p>
                 <div class="flex space-x-4">
-                    <a href="#" class="hover:text-red-400 transition-colors">Privacy Policy</a>
-                    <a href="#" class="hover:text-red-400 transition-colors">Terms of Service</a>
-                    <a href="#" class="hover:text-red-400 transition-colors">Contact</a>
+                    <a href="/privacy" class="hover:text-red-400 transition-colors">Privacy</a>
+                    <a href="/terms" class="hover:text-red-400 transition-colors">Terms of Service</a>
+                    <a href="/about" class="hover:text-red-400 transition-colors">Contact</a>
                 </div>
             </div>
         </div>
@@ -329,22 +302,6 @@
         const locationAccessStatus = document.getElementById('locationAccessStatus');
         const userLocation = document.getElementById('userLocation');
         const enableLocationBtn = document.getElementById('enableLocationBtn');
-        const alertRadius = document.getElementById('alertRadius');
-        const radiusValue = document.getElementById('radiusValue');
-
-        // Update radius display
-        alertRadius.addEventListener('input', () => {
-            const value = parseInt(alertRadius.value);
-            radiusValue.textContent = `${value.toLocaleString()} km`;
-            
-            // Store the radius in localStorage
-            const savedLocation = localStorage.getItem('userLocation');
-            if (savedLocation) {
-                const locationData = JSON.parse(savedLocation);
-                locationData.radius = value;
-                localStorage.setItem('userLocation', JSON.stringify(locationData));
-            }
-        });
 
         // Handle location permission
         enableLocationBtn.addEventListener('click', () => {
@@ -385,7 +342,7 @@
 
         // Function to send location to server
         function sendLocationToServer(latitude, longitude) {
-            const radius = parseInt(alertRadius.value);
+            const radius = 20038;
             fetch('/api/location', {
                 method: 'POST',
                 headers: {
@@ -395,8 +352,8 @@
                     latitude,
                     longitude,
                     radius: radius,
-                    enableAlerts: document.getElementById('enableAlerts').checked,
-                    enablePush: document.getElementById('enablePush').checked
+                    enableAlerts: true,
+                    enablePush: true
                 })
             })
             .then(response => response.json())
@@ -423,17 +380,6 @@
             }
         }
 
-        // Request notification permission
-        document.getElementById('enablePush').addEventListener('change', function(e) {
-            if (e.target.checked) {
-                Notification.requestPermission().then(permission => {
-                    if (permission !== 'granted') {
-                        e.target.checked = false;
-                        alert('Please enable notifications in your browser settings to receive alerts.');
-                    }
-                });
-            }
-        });
     </script>
 </body>
 </html> 
