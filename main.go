@@ -380,7 +380,7 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 	latestQuake := earthquakes[0]
 
 	// Render alert template
-	tmpl := template.Must(template.ParseFiles("templates/alerts.html"))
+	tmpl := template.Must(template.ParseFiles("templates/latest.html"))
 	err = tmpl.Execute(w, latestQuake)
 	if err != nil {
 		log.Printf("Error executing template: %v", err)

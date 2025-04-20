@@ -25,6 +25,26 @@ Real-time earthquake monitoring and alert system that keeps you informed about s
 
 ## Changelog
 
+### [0.5.11] - 2024-03-19
+- Added local copies of partner organization logos
+- Created static/images/logos directory for logo storage
+- Updated About page to use local logo files
+- Improved page load performance with local assets
+
+### [0.5.10] - 2024-03-19
+- Added partner organizations section to About page
+- Added USGS, NOAA, IRIS, and UNESCO logos
+- Enhanced About page with interactive partner logos
+- Improved About page layout with responsive grid
+
+### [0.5.9] - 2024-03-19
+- Added About page with mission statement and platform goals
+- Added route handler for /about endpoint
+- Enhanced documentation about Earth science awareness
+- Added climate change connection information
+- Added weather event integration details
+- Added community engagement section
+
 ### [0.5.8] - 2024-03-19
 - Removed Location Settings section from home page
 - Simplified home page interface
