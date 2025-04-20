@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>About QuakeMeUp - Earth Science Awareness</title>
+    <title>About Earthquakes - Understanding Seismic Activity</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .gradient-bg {
@@ -31,6 +31,10 @@
         .partner-logo:hover {
             transform: scale(1.05);
         }
+
+        .hero-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ef6461' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
     </style>
 </head>
 <body class="gradient-bg text-[#e8e9ebff]">
@@ -47,151 +51,231 @@
     </nav>
 
     <!-- Hero Section -->
-    <div class="relative overflow-hidden">
-        <div class="absolute inset-0 bg-[#313638ff] opacity-90"></div>
+    <div class="relative overflow-hidden hero-pattern">
+        <div class="absolute inset-0 bg-[#313638ff] opacity-95"></div>
         <div class="relative container mx-auto px-4 py-24 text-center">
-            <h1 class="text-5xl md:text-7xl font-bold mb-6 text-[#ef6461ff]">Our Mission</h1>
-            <p class="text-xl md:text-2xl text-[#e8e9ebff] max-w-3xl mx-auto leading-relaxed">
-                Connecting humanity with Earth's pulse through real-time monitoring and awareness
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 text-[#ef6461ff]">Understanding Earthquakes</h1>
+            <p class="text-xl md:text-2xl text-[#e8e9ebff] max-w-3xl mx-auto leading-relaxed mb-8">
+                Exploring the science behind seismic activity and its impact on our planet
             </p>
+            <div class="flex flex-wrap justify-center gap-4">
+                <a href="#what-are-earthquakes" class="bg-[#ef6461ff] hover:bg-[#d85654] text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                    What are Earthquakes?
+                </a>
+                <a href="#richter-scale" class="bg-[#2a2d30] hover:bg-[#3a3d40] text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                    Richter Scale
+                </a>
+                <a href="#safety" class="bg-[#2a2d30] hover:bg-[#3a3d40] text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                    Safety Tips
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-16">
-        <!-- Mission Statement -->
-        <div class="max-w-4xl mx-auto mb-24">
+        <!-- What are Earthquakes Section -->
+        <div id="what-are-earthquakes" class="max-w-4xl mx-auto mb-24">
             <div class="bg-[#2a2d30] rounded-2xl p-8 card-hover">
-                <h2 class="text-3xl font-bold mb-6 text-[#ef6461ff]">Earth Science Awareness</h2>
-                <p class="text-lg leading-relaxed mb-6">
-                    At QuakeMeUp, we believe that understanding our planet's seismic activity is crucial for both public safety and scientific advancement. Our platform goes beyond simple earthquake monitoring – we're committed to raising awareness about Earth's dynamic nature and its connection to broader environmental changes.
-                </p>
-                <p class="text-lg leading-relaxed">
-                    By providing real-time seismic data and educational resources, we help communities stay informed and prepared while fostering a deeper appreciation for Earth sciences.
-                </p>
-            </div>
-        </div>
-
-        <!-- Climate Change Section -->
-        <div class="max-w-4xl mx-auto mb-24">
-            <h2 class="text-3xl font-bold mb-8 text-center text-[#ef6461ff]">Climate Change & Earth Systems</h2>
-            <div class="grid md:grid-cols-2 gap-8">
-                <div class="bg-[#2a2d30] rounded-2xl p-8 card-hover">
-                    <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">Climate Impact</h3>
-                    <ul class="space-y-4">
-                        <li class="flex items-start">
-                            <span class="text-[#ef6461ff] mr-2">•</span>
-                            <span>Monitoring glacial earthquakes linked to ice sheet movement</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-[#ef6461ff] mr-2">•</span>
-                            <span>Tracking seismic activities related to volcanic events</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-[#ef6461ff] mr-2">•</span>
-                            <span>Studying correlations between extreme weather and geological stress</span>
-                        </li>
-                    </ul>
-                </div>
-                <div class="bg-[#2a2d30] rounded-2xl p-8 card-hover">
-                    <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">Weather Integration</h3>
-                    <ul class="space-y-4">
-                        <li class="flex items-start">
-                            <span class="text-[#ef6461ff] mr-2">•</span>
-                            <span>Impact of severe storms on geological stability</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-[#ef6461ff] mr-2">•</span>
-                            <span>Relationship between atmospheric pressure changes and seismic activity</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-[#ef6461ff] mr-2">•</span>
-                            <span>Effects of extreme weather on fault line stress</span>
-                        </li>
-                    </ul>
+                <h2 class="text-3xl font-bold mb-6 text-[#ef6461ff]">What are Earthquakes?</h2>
+                <div class="space-y-6">
+                    <p class="text-lg leading-relaxed">
+                        Earthquakes are natural phenomena that occur when there's a sudden release of energy in the Earth's lithosphere, creating seismic waves. This energy release typically happens along fault lines, where tectonic plates meet and interact.
+                    </p>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">Causes of Earthquakes</h3>
+                            <ul class="space-y-4">
+                                <li class="flex items-start">
+                                    <span class="text-[#ef6461ff] mr-2">•</span>
+                                    <span>Tectonic plate movements and collisions</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-[#ef6461ff] mr-2">•</span>
+                                    <span>Volcanic activity</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-[#ef6461ff] mr-2">•</span>
+                                    <span>Human activities (mining, reservoir-induced)</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">Types of Seismic Waves</h3>
+                            <ul class="space-y-4">
+                                <li class="flex items-start">
+                                    <span class="text-[#ef6461ff] mr-2">•</span>
+                                    <span>Primary (P) waves: Fastest, compressional</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-[#ef6461ff] mr-2">•</span>
+                                    <span>Secondary (S) waves: Slower, shear waves</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="text-[#ef6461ff] mr-2">•</span>
+                                    <span>Surface waves: Most destructive, slowest</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Community Section -->
-        <div class="max-w-4xl mx-auto mb-24">
-            <h2 class="text-3xl font-bold mb-8 text-center text-[#ef6461ff]">Community Engagement</h2>
+        <!-- Richter Scale Section -->
+        <div id="richter-scale" class="max-w-4xl mx-auto mb-24">
             <div class="bg-[#2a2d30] rounded-2xl p-8 card-hover">
+                <h2 class="text-3xl font-bold mb-8 text-center text-[#ef6461ff]">Understanding Earthquake Magnitude</h2>
                 <div class="grid md:grid-cols-2 gap-8">
                     <div>
-                        <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">Our Goals</h3>
-                        <ul class="space-y-4">
-                            <li class="flex items-start">
-                                <span class="text-[#ef6461ff] mr-2">•</span>
-                                <span>Providing accessible educational resources</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-[#ef6461ff] mr-2">•</span>
-                                <span>Facilitating scientific collaboration</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-[#ef6461ff] mr-2">•</span>
-                                <span>Encouraging public participation</span>
-                            </li>
-                        </ul>
+                        <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">The Richter Scale</h3>
+                        <p class="mb-4 text-gray-300">The Richter scale is a logarithmic scale used to measure the magnitude of earthquakes. Each whole number increase represents a tenfold increase in measured amplitude and approximately 31.6 times more energy release.</p>
+                        <div class="space-y-4">
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full bg-[#ef6461ff] mr-3"></div>
+                                <span class="text-gray-300">1.0-2.0: Microearthquakes, not felt</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full bg-[#ef6461ff] mr-3"></div>
+                                <span class="text-gray-300">2.0-4.0: Minor earthquakes, rarely cause damage</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full bg-[#ef6461ff] mr-3"></div>
+                                <span class="text-gray-300">4.0-5.0: Light earthquakes, noticeable shaking</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full bg-[#ef6461ff] mr-3"></div>
+                                <span class="text-gray-300">5.0-6.0: Moderate earthquakes, some damage</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full bg-[#ef6461ff] mr-3"></div>
+                                <span class="text-gray-300">6.0-7.0: Strong earthquakes, serious damage</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full bg-[#ef6461ff] mr-3"></div>
+                                <span class="text-gray-300">7.0+: Major earthquakes, widespread destruction</span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">Our Impact</h3>
-                        <ul class="space-y-4">
-                            <li class="flex items-start">
-                                <span class="text-[#ef6461ff] mr-2">•</span>
-                                <span>Supporting informed decision-making</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-[#ef6461ff] mr-2">•</span>
-                                <span>Promoting environmental awareness</span>
-                            </li>
-                            <li class="flex items-start">
-                                <span class="text-[#ef6461ff] mr-2">•</span>
-                                <span>Advancing Earth science education</span>
-                            </li>
-                        </ul>
+                    <div class="flex items-center justify-center">
+                        <svg width="100%" height="300" viewBox="0 0 400 300" class="richter-scale-diagram">
+                            <!-- Background -->
+                            <rect width="100%" height="100%" fill="#2a2d30" />
+                            
+                            <!-- Scale line -->
+                            <line x1="50" y1="250" x2="350" y2="250" stroke="#ef6461ff" stroke-width="2" />
+                            
+                            <!-- Scale markers -->
+                            <g stroke="#ef6461ff" stroke-width="1">
+                                <line x1="50" y1="245" x2="50" y2="255" />
+                                <line x1="100" y1="245" y2="255" />
+                                <line x1="150" y1="245" y2="255" />
+                                <line x1="200" y1="245" y2="255" />
+                                <line x1="250" y1="245" y2="255" />
+                                <line x1="300" y1="245" y2="255" />
+                                <line x1="350" y1="245" y2="255" />
+                            </g>
+                            
+                            <!-- Scale labels -->
+                            <g fill="#e8e9ebff" font-size="12" text-anchor="middle">
+                                <text x="50" y="270">1.0</text>
+                                <text x="100" y="270">2.0</text>
+                                <text x="150" y="270">3.0</text>
+                                <text x="200" y="270">4.0</text>
+                                <text x="250" y="270">5.0</text>
+                                <text x="300" y="270">6.0</text>
+                                <text x="350" y="270">7.0+</text>
+                            </g>
+                            
+                            <!-- Energy bars -->
+                            <g class="energy-bars">
+                                <rect x="50" y="200" width="50" height="50" fill="rgba(239, 100, 97, 0.2)" />
+                                <rect x="100" y="150" width="50" height="100" fill="rgba(239, 100, 97, 0.3)" />
+                                <rect x="150" y="100" width="50" height="150" fill="rgba(239, 100, 97, 0.4)" />
+                                <rect x="200" y="50" width="50" height="200" fill="rgba(239, 100, 97, 0.5)" />
+                                <rect x="250" y="25" width="50" height="225" fill="rgba(239, 100, 97, 0.6)" />
+                                <rect x="300" y="0" width="50" height="250" fill="rgba(239, 100, 97, 0.7)" />
+                            </g>
+                            
+                            <!-- Title -->
+                            <text x="200" y="30" fill="#e8e9ebff" font-size="16" text-anchor="middle">Richter Scale Energy Release</text>
+                        </svg>
                     </div>
+                </div>
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">Understanding the Impact</h3>
+                    <p class="text-gray-300 mb-4">
+                        The Richter scale was developed in 1935 by Charles F. Richter and Beno Gutenberg. It's important to note that the scale is logarithmic, meaning each whole number increase represents a significant increase in energy release. For example:
+                    </p>
+                    <ul class="list-disc list-inside space-y-2 text-gray-300">
+                        <li>A magnitude 5.0 earthquake releases about 31.6 times more energy than a magnitude 4.0</li>
+                        <li>A magnitude 6.0 earthquake releases about 1000 times more energy than a magnitude 4.0</li>
+                        <li>The largest recorded earthquake was a magnitude 9.5 in Chile in 1960</li>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Partners Section -->
-        <div class="max-w-4xl mx-auto">
-            <h2 class="text-3xl font-bold mb-12 text-center text-[#ef6461ff]">Our Partners</h2>
-            <div class="grid md:grid-cols-3 gap-8">
-                <div class="bg-[#2a2d30] rounded-2xl p-8 text-center card-hover">
-                    <div class="h-24 mb-4 flex items-center justify-center">
-                        <a href="https://www.usgs.gov" target="_blank" rel="noopener noreferrer" class="partner-logo">
-                            <img src="/static/images/logos/usgs.png" 
-                                 alt="USGS Logo" 
-                                 class="max-h-full max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300">
-                        </a>
+        <!-- Safety Tips Section -->
+        <div id="safety" class="max-w-4xl mx-auto mb-24">
+            <div class="bg-[#2a2d30] rounded-2xl p-8 card-hover">
+                <h2 class="text-3xl font-bold mb-8 text-center text-[#ef6461ff]">Earthquake Safety Tips</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">Before an Earthquake</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start">
+                                <span class="text-[#ef6461ff] mr-2">•</span>
+                                <span>Create an emergency plan with your family</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-[#ef6461ff] mr-2">•</span>
+                                <span>Prepare an emergency kit with supplies</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-[#ef6461ff] mr-2">•</span>
+                                <span>Secure heavy furniture and appliances</span>
+                            </li>
+                        </ul>
                     </div>
-                    <h3 class="text-lg font-bold mb-2">USGS</h3>
-                    <p class="text-sm text-gray-400">Earthquake monitoring and research</p>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">During an Earthquake</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start">
+                                <span class="text-[#ef6461ff] mr-2">•</span>
+                                <span>Drop, Cover, and Hold On</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-[#ef6461ff] mr-2">•</span>
+                                <span>Stay indoors until shaking stops</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-[#ef6461ff] mr-2">•</span>
+                                <span>Stay away from windows and heavy objects</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="bg-[#2a2d30] rounded-2xl p-8 text-center card-hover">
-                    <div class="h-24 mb-4 flex items-center justify-center">
-                        <a href="https://science.nasa.gov/climate-change/" target="_blank" rel="noopener noreferrer" class="partner-logo">
-                            <img src="/static/images/logos/nasa.webp" 
-                                 alt="NASA logo" 
-                                 class="max-h-full max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300">
-                        </a>
-                    </div>
-                    <h3 class="text-lg font-bold mb-2">NASA</h3>
-                    <p class="text-sm text-gray-400">Earth observation and research</p>
-                </div>
-                <div class="bg-[#2a2d30] rounded-2xl p-8 text-center card-hover">
-                    <div class="h-24 mb-4 flex items-center justify-center">
-                        <a href="https://www.unesco.org/en/climate-change" target="_blank" rel="noopener noreferrer" class="partner-logo">
-                            <img src="/static/images/logos/unesco.jpg" 
-                                 alt="UNESCO Logo" 
-                                 class="max-h-full max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300">
-                        </a>
-                    </div>
-                    <h3 class="text-lg font-bold mb-2">UNESCO</h3>
-                    <p class="text-sm text-gray-400">Geological heritage and education</p>
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">After an Earthquake</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <span class="text-[#ef6461ff] mr-2">•</span>
+                            <span>Check for injuries and provide first aid</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-[#ef6461ff] mr-2">•</span>
+                            <span>Inspect your home for damage</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-[#ef6461ff] mr-2">•</span>
+                            <span>Be prepared for aftershocks</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-[#ef6461ff] mr-2">•</span>
+                            <span>Listen to emergency broadcasts for updates</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
