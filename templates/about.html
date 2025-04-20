@@ -6,56 +6,36 @@
     <title>About QuakeMeUp - Earth Science Awareness</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .hero-section {
-            background: linear-gradient(rgba(49, 54, 56, 0.9), rgba(49, 54, 56, 0.9)),
-                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 1000"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="%23444" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="%23222"/><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
-            background-size: cover;
-            background-position: center;
-            min-height: 40vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 4rem 2rem;
+        .gradient-bg {
+            background: linear-gradient(135deg, #313638 0%, #1a1c1e 100%);
         }
-
-        .content-section {
-            background: #313638ff;
-            min-height: 60vh;
-            padding: 4rem 0;
-        }
-
-        .mission-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 1rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        
+        .card-hover {
             transition: all 0.3s ease;
         }
-
-        .mission-card:hover {
+        
+        .card-hover:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
-        .highlight {
-            color: #ff5252;
-            font-weight: 600;
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
         }
 
-        .footer {
-            background: rgba(49, 54, 56, 0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1rem;
-            text-align: center;
+        .partner-logo {
+            transition: all 0.3s ease;
+        }
+
+        .partner-logo:hover {
+            transform: scale(1.05);
         }
     </style>
 </head>
-<body class="bg-[#313638ff] text-[#e8e9ebff]">
+<body class="gradient-bg text-[#e8e9ebff]">
     <!-- Navigation -->
-    <nav class="bg-[#313638ff] p-4">
+    <nav class="bg-[#313638ff] p-4 sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
             <a href="/" class="text-2xl font-bold text-[#e8e9ebff]">QuakeMeUp</a>
             <div class="space-x-6">
@@ -67,114 +47,161 @@
     </nav>
 
     <!-- Hero Section -->
-    <div class="hero-section">
-        <div class="container mx-auto">
-            <h1 class="text-4xl md:text-6xl font-bold mb-4 text-[#ef6461ff]">Our Mission</h1>
-            <p class="text-xl md:text-2xl text-[#e8e9ebff] max-w-3xl mx-auto">
+    <div class="relative overflow-hidden">
+        <div class="absolute inset-0 bg-[#313638ff] opacity-90"></div>
+        <div class="relative container mx-auto px-4 py-24 text-center">
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 text-[#ef6461ff]">Our Mission</h1>
+            <p class="text-xl md:text-2xl text-[#e8e9ebff] max-w-3xl mx-auto leading-relaxed">
                 Connecting humanity with Earth's pulse through real-time monitoring and awareness
             </p>
         </div>
     </div>
 
-    <!-- Content Section -->
-    <div class="content-section">
-        <div class="container mx-auto px-4 max-w-4xl">
-            <div class="mission-card">
-                <h2 class="text-2xl font-bold mb-4 text-[#ef6461ff]">Earth Science Awareness</h2>
-                <p class="mb-4">
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-16">
+        <!-- Mission Statement -->
+        <div class="max-w-4xl mx-auto mb-24">
+            <div class="bg-[#2a2d30] rounded-2xl p-8 card-hover">
+                <h2 class="text-3xl font-bold mb-6 text-[#ef6461ff]">Earth Science Awareness</h2>
+                <p class="text-lg leading-relaxed mb-6">
                     At QuakeMeUp, we believe that understanding our planet's seismic activity is crucial for both public safety and scientific advancement. Our platform goes beyond simple earthquake monitoring – we're committed to raising awareness about Earth's dynamic nature and its connection to broader environmental changes.
                 </p>
-                <p>
+                <p class="text-lg leading-relaxed">
                     By providing real-time seismic data and educational resources, we help communities stay informed and prepared while fostering a deeper appreciation for Earth sciences.
                 </p>
             </div>
+        </div>
 
-            <div class="mission-card">
-                <h2 class="text-2xl font-bold mb-4 text-[#ef6461ff]">Climate Change Connection</h2>
-                <p class="mb-4">
-                    While earthquakes themselves aren't directly caused by climate change, our planet's changing climate affects various geological processes. Through our platform, we highlight the interconnected nature of Earth's systems:
-                </p>
-                <ul class="list-disc list-inside mb-4 space-y-2">
-                    <li>Monitoring glacial earthquakes linked to ice sheet movement</li>
-                    <li>Tracking seismic activities related to volcanic events</li>
-                    <li>Studying correlations between extreme weather and geological stress</li>
-                    <li>Observing changes in seismic patterns due to groundwater variations</li>
-                </ul>
+        <!-- Climate Change Section -->
+        <div class="max-w-4xl mx-auto mb-24">
+            <h2 class="text-3xl font-bold mb-8 text-center text-[#ef6461ff]">Climate Change & Earth Systems</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-[#2a2d30] rounded-2xl p-8 card-hover">
+                    <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">Climate Impact</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <span class="text-[#ef6461ff] mr-2">•</span>
+                            <span>Monitoring glacial earthquakes linked to ice sheet movement</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-[#ef6461ff] mr-2">•</span>
+                            <span>Tracking seismic activities related to volcanic events</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-[#ef6461ff] mr-2">•</span>
+                            <span>Studying correlations between extreme weather and geological stress</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-[#2a2d30] rounded-2xl p-8 card-hover">
+                    <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">Weather Integration</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <span class="text-[#ef6461ff] mr-2">•</span>
+                            <span>Impact of severe storms on geological stability</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-[#ef6461ff] mr-2">•</span>
+                            <span>Relationship between atmospheric pressure changes and seismic activity</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-[#ef6461ff] mr-2">•</span>
+                            <span>Effects of extreme weather on fault line stress</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
+        </div>
 
-            <div class="mission-card">
-                <h2 class="text-2xl font-bold mb-4 text-[#ef6461ff]">Weather Event Integration</h2>
-                <p class="mb-4">
-                    Our platform is evolving to capture and correlate major weather events with seismic activities. This integrated approach helps us understand:
-                </p>
-                <ul class="list-disc list-inside mb-4 space-y-2">
-                    <li>Impact of severe storms on geological stability</li>
-                    <li>Relationship between atmospheric pressure changes and seismic activity</li>
-                    <li>Effects of extreme weather on fault line stress</li>
-                    <li>Connections between ocean conditions and coastal seismic events</li>
-                </ul>
+        <!-- Community Section -->
+        <div class="max-w-4xl mx-auto mb-24">
+            <h2 class="text-3xl font-bold mb-8 text-center text-[#ef6461ff]">Community Engagement</h2>
+            <div class="bg-[#2a2d30] rounded-2xl p-8 card-hover">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">Our Goals</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start">
+                                <span class="text-[#ef6461ff] mr-2">•</span>
+                                <span>Providing accessible educational resources</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-[#ef6461ff] mr-2">•</span>
+                                <span>Facilitating scientific collaboration</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-[#ef6461ff] mr-2">•</span>
+                                <span>Encouraging public participation</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-[#ef6461ff]">Our Impact</h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start">
+                                <span class="text-[#ef6461ff] mr-2">•</span>
+                                <span>Supporting informed decision-making</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-[#ef6461ff] mr-2">•</span>
+                                <span>Promoting environmental awareness</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-[#ef6461ff] mr-2">•</span>
+                                <span>Advancing Earth science education</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <div class="mission-card">
-                <h2 class="text-2xl font-bold mb-4 text-[#ef6461ff]">Community Engagement</h2>
-                <p class="mb-4">
-                    We're building a community of earth science enthusiasts, researchers, and concerned citizens. Our goals include:
-                </p>
-                <ul class="list-disc list-inside space-y-2">
-                    <li>Providing accessible educational resources about Earth sciences</li>
-                    <li>Facilitating collaboration between scientific communities</li>
-                    <li>Encouraging public participation in environmental monitoring</li>
-                    <li>Supporting informed decision-making for climate action</li>
-                </ul>
-            </div>
-
-            <div class="mission-card">
-                <h2 class="text-2xl font-bold mb-4 text-[#ef6461ff]">Resources</h2>
-                <p class="mb-6">
-                    We leverage data and research from leading organizations in Earth science and space exploration to provide accurate and comprehensive information:
-                </p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center justify-items-center">
-                    <div class="partner-logo flex flex-col items-center">
-                        <div class="h-24 w-24 flex items-center justify-center">
-                            <a href="https://www.usgs.gov" target="_blank" rel="noopener noreferrer" class="hover:opacity-80 transition-opacity">
-                                <img src="/static/images/logos/usgs.png" 
-                                     alt="USGS Logo" 
-                                     class="max-h-full max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300">
-                            </a>
-                        </div>
-                        <p class="text-center mt-2 text-sm">USGS</p>
-                        <p class="text-center text-xs text-gray-400">Earthquake monitoring and research</p>
+        <!-- Partners Section -->
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-3xl font-bold mb-12 text-center text-[#ef6461ff]">Our Partners</h2>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-[#2a2d30] rounded-2xl p-8 text-center card-hover">
+                    <div class="h-24 mb-4 flex items-center justify-center">
+                        <a href="https://www.usgs.gov" target="_blank" rel="noopener noreferrer" class="partner-logo">
+                            <img src="/static/images/logos/usgs.png" 
+                                 alt="USGS Logo" 
+                                 class="max-h-full max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300">
+                        </a>
                     </div>
-                    <div class="partner-logo flex flex-col items-center">
-                        <div class="h-24 w-24 flex items-center justify-center">
-                            <a href="https://science.nasa.gov/climate-change/" target="_blank" rel="noopener noreferrer" class="hover:opacity-80 transition-opacity">
-                                <img src="/static/images/logos/nasa.webp" 
-                                     alt="NASA logo" 
-                                     class="max-h-full max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300">
-                            </a>
-                        </div>
-                        <p class="text-center mt-2 text-sm">NASA</p>
-                        <p class="text-center text-xs text-gray-400">Earth observation and research</p>
+                    <h3 class="text-lg font-bold mb-2">USGS</h3>
+                    <p class="text-sm text-gray-400">Earthquake monitoring and research</p>
+                </div>
+                <div class="bg-[#2a2d30] rounded-2xl p-8 text-center card-hover">
+                    <div class="h-24 mb-4 flex items-center justify-center">
+                        <a href="https://science.nasa.gov/climate-change/" target="_blank" rel="noopener noreferrer" class="partner-logo">
+                            <img src="/static/images/logos/nasa.webp" 
+                                 alt="NASA logo" 
+                                 class="max-h-full max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300">
+                        </a>
                     </div>
-                    <div class="partner-logo flex flex-col items-center">
-                        <div class="h-24 w-24 flex items-center justify-center">
-                            <a href="https://www.unesco.org/en/climate-change" target="_blank" rel="noopener noreferrer" class="hover:opacity-80 transition-opacity">
-                                <img src="/static/images/logos/unesco.jpg" 
-                                     alt="UNESCO Logo" 
-                                     class="max-h-full max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300">
-                            </a>
-                        </div>
-                        <p class="text-center mt-2 text-sm">UNESCO</p>
-                        <p class="text-center text-xs text-gray-400">Geological heritage and education</p>
+                    <h3 class="text-lg font-bold mb-2">NASA</h3>
+                    <p class="text-sm text-gray-400">Earth observation and research</p>
+                </div>
+                <div class="bg-[#2a2d30] rounded-2xl p-8 text-center card-hover">
+                    <div class="h-24 mb-4 flex items-center justify-center">
+                        <a href="https://www.unesco.org/en/climate-change" target="_blank" rel="noopener noreferrer" class="partner-logo">
+                            <img src="/static/images/logos/unesco.jpg" 
+                                 alt="UNESCO Logo" 
+                                 class="max-h-full max-w-full object-contain grayscale hover:grayscale-0 transition-all duration-300">
+                        </a>
                     </div>
+                    <h3 class="text-lg font-bold mb-2">UNESCO</h3>
+                    <p class="text-sm text-gray-400">Geological heritage and education</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="footer">
-        <span>&copy; 2025 QuakeMeUp &middot; <a href="/privacy" class="text-[#e4b363ff] hover:text-[#ef6461ff] transition-colors">Privacy</a> &middot; <a href="/terms" class="text-[#e4b363ff] hover:text-[#ef6461ff] transition-colors">Terms</a></span>
+    <footer class="bg-[#2a2d30] py-8 mt-16">
+        <div class="container mx-auto px-4 text-center">
+            <span>&copy; 2025 QuakeMeUp &middot; <a href="/privacy" class="text-[#e4b363ff] hover:text-[#ef6461ff] transition-colors">Privacy</a> &middot; <a href="/terms" class="text-[#e4b363ff] hover:text-[#ef6461ff] transition-colors">Terms</a></span>
+        </div>
     </footer>
 </body>
 </html> 
