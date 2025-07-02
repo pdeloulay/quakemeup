@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"html/template"
@@ -19,18 +21,104 @@ type PageData struct {
 }
 
 type UserLocation struct {
-	Latitude     float64 `json:"latitude"`
-	Longitude    float64 `json:"longitude"`
-	Radius       int     `json:"radius"`
-	EnableAlerts bool    `json:"enableAlerts"`
-	EnablePush   bool    `json:"enablePush"`
-	LastUpdated  string  `json:"lastUpdated"`
+	Latitude     float64   `json:"latitude"`
+	Longitude    float64   `json:"longitude"`
+	Radius       int       `json:"radius"`
+	EnableAlerts bool      `json:"enableAlerts"`
+	EnablePush   bool      `json:"enablePush"`
+	LastUpdated  time.Time `json:"lastUpdated"`
 }
 
 var (
 	userLocations = make(map[string]UserLocation)
 	locationMutex = &sync.RWMutex{}
+	sessions      = make(map[string]string) // sessionID -> userID mapping
+	sessionMutex  = &sync.RWMutex{}
 )
+
+// generateSessionID creates a cryptographically secure session ID
+func generateSessionID() (string, error) {
+	bytes := make([]byte, 32)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
+}
+
+// getUserID extracts or creates a user session
+func getUserID(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		// No session cookie, create a new one
+		sessionID, err := generateSessionID()
+		if err != nil {
+			return "", err
+		}
+		
+		sessionMutex.Lock()
+		sessions[sessionID] = sessionID // Use sessionID as userID for simplicity
+		sessionMutex.Unlock()
+		
+		return sessionID, nil
+	}
+	
+	sessionMutex.RLock()
+	userID, exists := sessions[cookie.Value]
+	sessionMutex.RUnlock()
+	
+	if !exists {
+		// Invalid session, create new one
+		sessionID, err := generateSessionID()
+		if err != nil {
+			return "", err
+		}
+		
+		sessionMutex.Lock()
+		sessions[sessionID] = sessionID
+		sessionMutex.Unlock()
+		
+		return sessionID, nil
+	}
+	
+	return userID, nil
+}
+
+// setSessionCookie sets a secure session cookie
+func setSessionCookie(w http.ResponseWriter, sessionID string) {
+	cookie := &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionID,
+		Path:     "/",
+		MaxAge:   86400 * 7, // 7 days
+		HttpOnly: true,
+		Secure:   false, // Set to true in production with HTTPS
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, cookie)
+}
+
+// cleanupOldData removes stale sessions and location data older than 7 days
+func cleanupOldData() {
+	ticker := time.NewTicker(24 * time.Hour) // Run cleanup daily
+	defer ticker.Stop()
+	
+	for range ticker.C {
+		cutoff := time.Now().Add(-7 * 24 * time.Hour) // 7 days ago
+		
+		locationMutex.Lock()
+		for userID, location := range userLocations {
+			if location.LastUpdated.Before(cutoff) {
+				delete(userLocations, userID)
+				log.Printf("Cleaned up old location data for user %s", userID)
+			}
+		}
+		locationMutex.Unlock()
+		
+		// Note: Sessions cleanup would need more sophisticated tracking
+		// of last access time. For now, we rely on cookie expiration.
+		log.Printf("Completed cleanup cycle, removed stale data older than %v", cutoff)
+	}
+}
 
 // FeatureCollection represents the USGS GeoJSON response
 type FeatureCollection struct {
@@ -106,7 +194,14 @@ func main() {
 		log.Printf("Map page requested from %s", r.RemoteAddr)
 
 		// Get user's location from stored data
-		userID := r.RemoteAddr
+		userID, err := getUserID(r)
+		if err != nil {
+			log.Printf("Error getting user ID: %v", err)
+			http.Error(w, "Session error", http.StatusInternalServerError)
+			return
+		}
+		setSessionCookie(w, userID)
+		
 		locationMutex.RLock()
 		userLoc, hasLocation := userLocations[userID]
 		locationMutex.RUnlock()
@@ -183,6 +278,9 @@ func main() {
 	// Alert handler
 	http.HandleFunc("/latest", alertHandler)
 
+	// Start cleanup goroutine
+	go cleanupOldData()
+
 	// Start server
 	port := 8080
 	log.Printf("Server starting on port %d...", port)
@@ -202,9 +300,16 @@ func handleLocation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate a unique ID for the user (in production, use a proper session ID)
-	userID := r.RemoteAddr
-	loc.LastUpdated = time.Now().Format(time.RFC3339)
+	// Get secure user ID from session
+	userID, err := getUserID(r)
+	if err != nil {
+		log.Printf("Error getting user ID: %v", err)
+		http.Error(w, "Session error", http.StatusInternalServerError)
+		return
+	}
+	setSessionCookie(w, userID)
+	
+	loc.LastUpdated = time.Now()
 
 	// Store the location
 	locationMutex.Lock()
@@ -224,10 +329,12 @@ func handleLocation(w http.ResponseWriter, r *http.Request) {
 // Simplified distance calculation (Haversine formula)
 func calculateDistance(lat1, lon1, lat2, lon2 float64) float64 {
 	const R = 6371 // Earth's radius in kilometers
-	φ1 := lat1 * (3.141592653589793 / 180)
-	φ2 := lat2 * (3.141592653589793 / 180)
-	Δφ := (lat2 - lat1) * (3.141592653589793 / 180)
-	Δλ := (lon2 - lon1) * (3.141592653589793 / 180)
+	
+	// Convert degrees to radians using math.Pi for better precision
+	φ1 := lat1 * (math.Pi / 180)
+	φ2 := lat2 * (math.Pi / 180)
+	Δφ := (lat2 - lat1) * (math.Pi / 180)
+	Δλ := (lon2 - lon1) * (math.Pi / 180)
 
 	a := math.Sin(Δφ/2)*math.Sin(Δφ/2) +
 		math.Cos(φ1)*math.Cos(φ2)*
@@ -341,12 +448,37 @@ func quakesHandler(w http.ResponseWriter, r *http.Request) {
 	lat := r.URL.Query().Get("lat")
 	lon := r.URL.Query().Get("lon")
 	if lat != "" && lon != "" {
-		userLat, _ := strconv.ParseFloat(lat, 64)
-		userLon, _ := strconv.ParseFloat(lon, 64)
+		userLat, err := strconv.ParseFloat(lat, 64)
+		if err != nil {
+			log.Printf("Invalid latitude parameter: %v", err)
+			http.Error(w, "Invalid latitude parameter", http.StatusBadRequest)
+			return
+		}
+		
+		userLon, err := strconv.ParseFloat(lon, 64)
+		if err != nil {
+			log.Printf("Invalid longitude parameter: %v", err)
+			http.Error(w, "Invalid longitude parameter", http.StatusBadRequest)
+			return
+		}
+		
+		// Validate coordinate ranges
+		if userLat < -90 || userLat > 90 {
+			log.Printf("Latitude out of range: %f", userLat)
+			http.Error(w, "Latitude must be between -90 and 90", http.StatusBadRequest)
+			return
+		}
+		
+		if userLon < -180 || userLon > 180 {
+			log.Printf("Longitude out of range: %f", userLon)
+			http.Error(w, "Longitude must be between -180 and 180", http.StatusBadRequest)
+			return
+		}
 
 		var filteredQuakes []Earthquake
 		for _, quake := range earthquakes {
 			distance := calculateDistance(userLat, userLon, quake.Latitude, quake.Longitude)
+			quake.Distance = distance // Set the calculated distance
 			if distance <= 500 { // 500km radius
 				filteredQuakes = append(filteredQuakes, quake)
 			}
