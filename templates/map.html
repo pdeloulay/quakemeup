@@ -222,6 +222,41 @@
             font-style: italic;
             color: #e0dfd5ff;
         }
+
+        .location-error-helper {
+            background-color: #442F38;
+            border: 1px solid #9A9B73;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .location-error-helper.visible {
+            display: block;
+        }
+
+        .location-error-helper h3 {
+            color: #E7F9A9;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .location-error-helper ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            color: #C6B38E;
+        }
+
+        .location-error-helper li {
+            margin-bottom: 0.5rem;
+        }
+
+        .location-error-helper .browser-specific {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #9A9B73;
+        }
     </style>
 </head>
 <body class="bg-[#313638ff] text-[#e8e9ebff]">
@@ -247,6 +282,21 @@
             <!-- Map Section -->
             <div class="md:col-span-2">
                 <div class="world-map-container">
+                    <div id="locationErrorHelper" class="location-error-helper">
+                        <h3>Location Access Required</h3>
+                        <p class="mb-4">To show earthquake distances, we need access to your location. Here's how to enable it:</p>
+                        <ul>
+                            <li>Check if location services are enabled on your device</li>
+                            <li>Make sure you've granted location permission to your browser</li>
+                            <li>Try refreshing the page and accepting the location permission prompt</li>
+                        </ul>
+                        <div class="browser-specific">
+                            <h3>Browser-Specific Instructions:</h3>
+                            <ul id="browserInstructions">
+                                <!-- Will be populated by JavaScript -->
+                            </ul>
+                        </div>
+                    </div>
                     <div class="world-map">
                         <!-- SVG map will be loaded here -->
                     </div>
@@ -357,6 +407,7 @@
                 <p><span class="magnitude">Magnitude:</span> ${quake.magnitude}</p>
                 <p><span class="magnitude">Location:</span> ${quake.place}</p>
                 <p><span class="magnitude">Depth:</span> ${quake.depth || 'N/A'} km</p>
+                ${quake.distance !== undefined ? `<p><span class="magnitude">Distance:</span> ${quake.distance.toFixed(1)} km</p>` : ''}
                 <p class="time">${quake.timeAgo}</p>
             `;
             
@@ -397,12 +448,12 @@
             place.className = 'font-medium';
             place.textContent = quake.place;
             
-            const time = document.createElement('div');
-            time.className = 'text-sm text-gray-400';
-            time.textContent = quake.timeAgo;
+            const info = document.createElement('div');
+            info.className = 'text-sm text-gray-400';
+            info.innerHTML = `${quake.timeAgo}${quake.distance !== undefined ? ` • ${quake.distance.toFixed(1)} km away` : ''}`;
             
             details.appendChild(place);
-            details.appendChild(time);
+            details.appendChild(info);
             
             item.appendChild(magnitude);
             item.appendChild(details);
@@ -584,11 +635,120 @@
             }
         }
 
-        // Initial load
+        // Function to show browser-specific location instructions
+        function showBrowserSpecificInstructions() {
+            const browserInstructions = document.getElementById('browserInstructions');
+            const userAgent = navigator.userAgent.toLowerCase();
+            let instructions = [];
+
+            if (userAgent.includes('chrome')) {
+                instructions = [
+                    'Click the lock/info icon in the address bar',
+                    'Select "Site settings"',
+                    'Find "Location" and change it to "Allow"'
+                ];
+            } else if (userAgent.includes('firefox')) {
+                instructions = [
+                    'Click the lock/shield icon in the address bar',
+                    'Click "More Information"',
+                    'Under "Permissions", find "Access Your Location" and select "Allow"'
+                ];
+            } else if (userAgent.includes('safari')) {
+                instructions = [
+                    'Open Safari Preferences',
+                    'Go to Privacy & Security',
+                    'Under Website tracking, ensure Location Services is enabled',
+                    'When prompted, click "Allow" for this website'
+                ];
+            } else {
+                instructions = [
+                    'Check your browser settings for location permissions',
+                    'Look for site-specific permissions or privacy settings',
+                    'Ensure location access is enabled for this website'
+                ];
+            }
+
+            browserInstructions.innerHTML = instructions
+                .map(instruction => `<li>${instruction}</li>`)
+                .join('');
+        }
+
+        // Enhanced location error handling
+        function handleLocationError(error) {
+            const locationErrorHelper = document.getElementById('locationErrorHelper');
+            const locationAccessStatus = document.getElementById('locationAccessStatus');
+            const userLocation = document.getElementById('userLocation');
+            
+            locationErrorHelper.classList.add('visible');
+            showBrowserSpecificInstructions();
+
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    locationAccessStatus.textContent = 'Error: Location permission denied';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    locationAccessStatus.textContent = 'Error: Location unavailable';
+                    break;
+                case error.TIMEOUT:
+                    locationAccessStatus.textContent = 'Error: Location request timed out';
+                    break;
+                default:
+                    locationAccessStatus.textContent = 'Error: Unable to get location';
+            }
+            
+            userLocation.textContent = 'Not available';
+            locationStatus.classList.remove('hidden');
+            
+            // Log for debugging
+            console.error('Geolocation error:', error);
+        }
+
+        // Update the location request function
+        function requestLocation() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        const locationErrorHelper = document.getElementById('locationErrorHelper');
+                        locationErrorHelper.classList.remove('visible');
+                        
+                        locationAccessStatus.textContent = "Enabled";
+                        userLocation.textContent = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+                        locationStatus.classList.remove('hidden');
+                        
+                        // Store location in localStorage
+                        localStorage.setItem('userLocation', JSON.stringify({
+                            lat: latitude,
+                            lng: longitude,
+                            timestamp: new Date().toISOString()
+                        }));
+
+                        // Send location to server
+                        sendLocationToServer(latitude, longitude);
+                        
+                        // Refresh earthquakes with new location
+                        fetchEarthquakes();
+                    },
+                    handleLocationError,
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                locationAccessStatus.textContent = "Not supported by your browser";
+                locationStatus.classList.remove('hidden');
+                const locationErrorHelper = document.getElementById('locationErrorHelper');
+                locationErrorHelper.classList.add('visible');
+            }
+        }
+
+        // Update the initial load to request location
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Initializing page...');
             loadWorldMap();
-            positionUserLocationMarker();
+            requestLocation(); // Request location on page load
             fetchEarthquakes();
         });
     </script>

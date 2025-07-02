@@ -54,32 +54,32 @@ func getUserID(r *http.Request) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		
+
 		sessionMutex.Lock()
 		sessions[sessionID] = sessionID // Use sessionID as userID for simplicity
 		sessionMutex.Unlock()
-		
+
 		return sessionID, nil
 	}
-	
+
 	sessionMutex.RLock()
 	userID, exists := sessions[cookie.Value]
 	sessionMutex.RUnlock()
-	
+
 	if !exists {
 		// Invalid session, create new one
 		sessionID, err := generateSessionID()
 		if err != nil {
 			return "", err
 		}
-		
+
 		sessionMutex.Lock()
 		sessions[sessionID] = sessionID
 		sessionMutex.Unlock()
-		
+
 		return sessionID, nil
 	}
-	
+
 	return userID, nil
 }
 
@@ -101,10 +101,10 @@ func setSessionCookie(w http.ResponseWriter, sessionID string) {
 func cleanupOldData() {
 	ticker := time.NewTicker(24 * time.Hour) // Run cleanup daily
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		cutoff := time.Now().Add(-7 * 24 * time.Hour) // 7 days ago
-		
+
 		locationMutex.Lock()
 		for userID, location := range userLocations {
 			if location.LastUpdated.Before(cutoff) {
@@ -113,7 +113,7 @@ func cleanupOldData() {
 			}
 		}
 		locationMutex.Unlock()
-		
+
 		// Note: Sessions cleanup would need more sophisticated tracking
 		// of last access time. For now, we rely on cookie expiration.
 		log.Printf("Completed cleanup cycle, removed stale data older than %v", cutoff)
@@ -147,11 +147,11 @@ type Earthquake struct {
 	Magnitude float64   `json:"magnitude"`
 	Place     string    `json:"place"`
 	Time      time.Time `json:"time"`
-	TimeAgo   string    `json:"timeAgo"`
 	Latitude  float64   `json:"latitude"`
 	Longitude float64   `json:"longitude"`
 	Depth     float64   `json:"depth"`
-	Distance  float64   `json:"distance"`
+	TimeAgo   string    `json:"timeAgo"`
+	Distance  float64   `json:"distance,omitempty"` // Distance from user in km, if available
 }
 
 // USGSResponse represents the response from USGS API
@@ -201,7 +201,7 @@ func main() {
 			return
 		}
 		setSessionCookie(w, userID)
-		
+
 		locationMutex.RLock()
 		userLoc, hasLocation := userLocations[userID]
 		locationMutex.RUnlock()
@@ -308,7 +308,7 @@ func handleLocation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	setSessionCookie(w, userID)
-	
+
 	loc.LastUpdated = time.Now()
 
 	// Store the location
@@ -329,7 +329,7 @@ func handleLocation(w http.ResponseWriter, r *http.Request) {
 // Simplified distance calculation (Haversine formula)
 func calculateDistance(lat1, lon1, lat2, lon2 float64) float64 {
 	const R = 6371 // Earth's radius in kilometers
-	
+
 	// Convert degrees to radians using math.Pi for better precision
 	φ1 := lat1 * (math.Pi / 180)
 	φ2 := lat2 * (math.Pi / 180)
@@ -435,60 +435,86 @@ func fetchEarthquakes(startTime time.Time, minMagnitude float64, limit int) ([]E
 func quakesHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("Handling /api/quakes request")
 
-	// Get earthquakes from the last 24 hours
-	startTime := time.Now().Add(-24 * time.Hour)
-	earthquakes, err := fetchEarthquakes(startTime, 0, 0)
+	// Get user's location from stored data
+	userID, err := getUserID(r)
 	if err != nil {
-		log.Printf("Error in quakesHandler: %v", err)
+		log.Printf("Error getting user ID: %v", err)
+		http.Error(w, "Session error", http.StatusInternalServerError)
+		return
+	}
+
+	locationMutex.RLock()
+	userLoc, hasLocation := userLocations[userID]
+	locationMutex.RUnlock()
+
+	// Parse query parameters
+	query := r.URL.Query()
+	duration := query.Get("duration")
+	minMagStr := query.Get("minMagnitude")
+	maxMagStr := query.Get("maxMagnitude")
+	radiusStr := query.Get("radius")
+
+	// Set default values
+	var startTime time.Time
+	switch duration {
+	case "hour":
+		startTime = time.Now().Add(-time.Hour)
+	case "week":
+		startTime = time.Now().AddDate(0, 0, -7)
+	case "month":
+		startTime = time.Now().AddDate(0, -1, 0)
+	default: // default to 24 hours
+		startTime = time.Now().AddDate(0, 0, -1)
+	}
+
+	minMag := 0.0
+	if minMagStr != "" {
+		minMag, _ = strconv.ParseFloat(minMagStr, 64)
+	}
+
+	maxMag := 10.0
+	if maxMagStr != "" {
+		maxMag, _ = strconv.ParseFloat(maxMagStr, 64)
+	}
+
+	radius := 100 // default radius in km
+	if radiusStr != "" {
+		radius, _ = strconv.Atoi(radiusStr)
+	}
+
+	// Fetch earthquakes from USGS
+	earthquakes, err := fetchEarthquakes(startTime, minMag, 500) // increased limit to account for filtering
+	if err != nil {
+		log.Printf("Error fetching earthquakes: %v", err)
 		http.Error(w, "Failed to fetch earthquake data", http.StatusInternalServerError)
 		return
 	}
 
-	// Filter by user location if provided
-	lat := r.URL.Query().Get("lat")
-	lon := r.URL.Query().Get("lon")
-	if lat != "" && lon != "" {
-		userLat, err := strconv.ParseFloat(lat, 64)
-		if err != nil {
-			log.Printf("Invalid latitude parameter: %v", err)
-			http.Error(w, "Invalid latitude parameter", http.StatusBadRequest)
-			return
-		}
-		
-		userLon, err := strconv.ParseFloat(lon, 64)
-		if err != nil {
-			log.Printf("Invalid longitude parameter: %v", err)
-			http.Error(w, "Invalid longitude parameter", http.StatusBadRequest)
-			return
-		}
-		
-		// Validate coordinate ranges
-		if userLat < -90 || userLat > 90 {
-			log.Printf("Latitude out of range: %f", userLat)
-			http.Error(w, "Latitude must be between -90 and 90", http.StatusBadRequest)
-			return
-		}
-		
-		if userLon < -180 || userLon > 180 {
-			log.Printf("Longitude out of range: %f", userLon)
-			http.Error(w, "Longitude must be between -180 and 180", http.StatusBadRequest)
-			return
+	// Filter and process earthquakes
+	filteredQuakes := make([]Earthquake, 0)
+	for _, quake := range earthquakes {
+		// Apply magnitude filter
+		if quake.Magnitude < minMag || quake.Magnitude > maxMag {
+			continue
 		}
 
-		var filteredQuakes []Earthquake
-		for _, quake := range earthquakes {
-			distance := calculateDistance(userLat, userLon, quake.Latitude, quake.Longitude)
-			quake.Distance = distance // Set the calculated distance
-			if distance <= 500 { // 500km radius
-				filteredQuakes = append(filteredQuakes, quake)
+		// Calculate distance if user location is available
+		if hasLocation {
+			distance := calculateDistance(userLoc.Latitude, userLoc.Longitude, quake.Latitude, quake.Longitude)
+			quake.Distance = distance // Add distance to earthquake data
+
+			// Apply radius filter
+			if distance > float64(radius) {
+				continue
 			}
 		}
-		earthquakes = filteredQuakes
+
+		filteredQuakes = append(filteredQuakes, quake)
 	}
 
 	// Return JSON response
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(earthquakes)
+	json.NewEncoder(w).Encode(filteredQuakes)
 }
 
 func alertHandler(w http.ResponseWriter, r *http.Request) {
