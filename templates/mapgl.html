@@ -20,14 +20,7 @@ body { margin: 0; padding: 0; }
     top: 20px;
     left: 20px;
     z-index: 2;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 12px 24px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 0, 0, 0.1);
     display: flex;
-    gap: 24px;
     align-items: center;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
@@ -40,14 +33,21 @@ body { margin: 0; padding: 0; }
 }
 
 .nav-links {
-    color: #666;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #e4b363ff, #ef6461ff);
+    color: #313638ff;
+    font-weight: 600;
     text-decoration: none;
     font-size: 16px;
-    transition: color 0.2s ease;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
 }
 
 .nav-links:hover {
-    color: #ff5252;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 100, 97, 0.3);
 }
 
 /* Mobile styles for navigation */
@@ -577,14 +577,31 @@ body { margin: 0; padding: 0; }
     const storedUserLat = {{.UserLat}};
     const storedUserLng = {{.UserLng}};
     
-    // Initial map with default or stored location
+    // Get URL parameters for direct navigation
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetLat = parseFloat(urlParams.get('lat'));
+    const targetLng = parseFloat(urlParams.get('lng'));
+    const targetZoom = parseInt(urlParams.get('zoom')) || 5;
+
+    // Initial map with target location, stored location, or default
     const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/pdeloulay/cmcmn7yxp005a01sq89mchuwx',
         projection: 'globe',
-        zoom: 5,
-        center: hasStoredLocation ? [storedUserLng, storedUserLat] : [30, 15]
+        zoom: targetLat && targetLng ? targetZoom : 5,
+        center: targetLat && targetLng ? [targetLng, targetLat] : 
+                hasStoredLocation ? [storedUserLng, storedUserLat] : [30, 15]
     });
+
+    // If we have target coordinates, add a marker
+    if (targetLat && targetLng) {
+        new mapboxgl.Marker({
+            color: '#ff0000',
+            scale: 1.2
+        })
+        .setLngLat([targetLng, targetLat])
+        .addTo(map);
+    }
 
     let userLocation = null;
     let userMarker = null;
