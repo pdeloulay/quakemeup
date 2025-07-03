@@ -183,6 +183,10 @@ Leapcell Dashboard: https://leapcell.io/workspace/wsp1940861468352741376/dashboa
 
 ## Changelog
 
+
+### [1.2.0] - 2025-07-03
+- Reduce reloading quake data set if user is on the move...
+
 ### [1.1.2] - 2025-07-03
 - Deployed on leapcell (SSO via GitHub) - listening to main branch
 
