@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -20,7 +21,8 @@ import (
 )
 
 type PageData struct {
-	Title string
+	Title   string
+	Version string
 }
 
 type UserLocation struct {
@@ -204,11 +206,42 @@ func CORSMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// readVersion reads the version from .version file
+func readVersion() string {
+	version, err := os.ReadFile(".version")
+	if err != nil {
+		log.Printf("Warning: Could not read version file: %v", err)
+		return "dev"
+	}
+	return strings.TrimSpace(string(version))
+}
+
 func main() {
-	// Load environment variables from .env file
+	// Load environment variables
 	if err := godotenv.Load(); err != nil {
 		log.Printf("Warning: Error loading .env file: %v", err)
 	}
+
+	// Read version
+	version := readVersion()
+	log.Printf("Starting QuakeMeUp version %s", version)
+
+	// Create template data with version
+	data := PageData{
+		Title:   "QuakeMeUp - Real-time Earthquake Monitoring",
+		Version: version,
+	}
+
+	// Parse templates
+	templates := template.Must(template.ParseFiles(
+		"templates/home.html",
+		"templates/about.html",
+		"templates/latest.html",
+		"templates/mapgl.html",
+		"templates/mission.html",
+		"templates/privacy.html",
+		"templates/terms.html",
+	))
 
 	// Load Mapbox token from environment variable
 	mapboxToken := os.Getenv("MAPBOX_TOKEN")
@@ -232,12 +265,14 @@ func main() {
 
 	// Home page
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		tmpl, err := template.ParseFiles("templates/home.html")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+		if r.URL.Path != "/" {
+			http.NotFound(w, r)
 			return
 		}
-		tmpl.Execute(w, nil)
+		if err := templates.ExecuteTemplate(w, "home.html", data); err != nil {
+			log.Printf("Error executing template: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
 	})
 
 	// Map page
@@ -289,32 +324,26 @@ func main() {
 
 	// Privacy Policy page
 	mux.HandleFunc("/privacy", func(w http.ResponseWriter, r *http.Request) {
-		tmpl, err := template.ParseFiles("templates/privacy.html")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		if err := templates.ExecuteTemplate(w, "privacy.html", data); err != nil {
+			log.Printf("Error executing template: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
-		tmpl.Execute(w, nil)
 	})
 
 	// Terms of Service page
 	mux.HandleFunc("/terms", func(w http.ResponseWriter, r *http.Request) {
-		tmpl, err := template.ParseFiles("templates/terms.html")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		if err := templates.ExecuteTemplate(w, "terms.html", data); err != nil {
+			log.Printf("Error executing template: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
-		tmpl.Execute(w, nil)
 	})
 
 	// About page
 	mux.HandleFunc("/about", func(w http.ResponseWriter, r *http.Request) {
-		tmpl, err := template.ParseFiles("templates/about.html")
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		if err := templates.ExecuteTemplate(w, "about.html", data); err != nil {
+			log.Printf("Error executing template: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
-		tmpl.Execute(w, nil)
 	})
 
 	// API endpoint for earthquakes

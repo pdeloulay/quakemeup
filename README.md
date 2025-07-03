@@ -14,16 +14,25 @@ Real-time earthquake monitoring and alert system that keeps you informed about s
 
 - Real-time earthquake monitoring
 - Location-based alerts
-- Customizable alert radius (10-500 km)
-- Push notifications
 - Mobile-friendly interface
 - Interactive world map visualization
 - Geolocation support
 - Interactive world map showing recent earthquakes
-- List of recent earthquakes with magnitude and location
-- Automatic data refresh every 5 minutes
 
 ## Changelog
+
+### [1.0.0] - 2025-07-02
+- Added version management with `.version` file
+- Enhanced application initialization with version reading
+- Updated footer to display current application version
+- Improved template handling with centralized version display
+- Added proper error handling for version file reading
+- Implemented version display across all pages
+- Added new interactive map page using Mapbox GL JS
+- Integrated Mapbox token management via environment variables
+- Enhanced map visualization with custom earthquake markers
+- Added real-time earthquake data overlay on Mapbox map
+- Implemented secure token handling for Mapbox integration
 
 ### [0.5.11] - 2024-03-19
 - Added local copies of partner organization logos
