@@ -475,19 +475,20 @@ body { margin: 0; padding: 0; }
     justify-content: center;
     margin-top: 12px;
     padding: 8px 16px;
-    background-color: #0066ff;
-    color: white;
+    background: linear-gradient(135deg, #e4b363ff, #ef6461ff);
+    color: #313638ff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
+    font-weight: 600;
+    transition: all 0.3s ease;
     width: 100%;
 }
 
 .goto-button:hover {
-    background-color: #0052cc;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 100, 97, 0.3);
 }
 
 .goto-button svg {
@@ -612,7 +613,7 @@ body { margin: 0; padding: 0; }
             userMarker.setLngLat(lngLat);
         } else {
             userMarker = new mapboxgl.Marker({
-                color: '#0066ff',
+                color: '#0066ff',  // bright blue for user location
                 scale: 0.8
             })
             .setLngLat(lngLat)
@@ -895,7 +896,7 @@ body { margin: 0; padding: 0; }
                         'circle-color': [
                             'case',
                             ['get', 'isLatest'],
-                            'rgba(0, 102, 255, 0.3)',  // Latest earthquake (blue)
+                            'rgba(239, 100, 97, 0.4)',  // Latest earthquake (bittersweet from our palette)
                             [
                                 'interpolate',
                                 ['linear'],
@@ -910,7 +911,7 @@ body { margin: 0; padding: 0; }
                         'circle-opacity': [
                             'case',
                             ['get', 'isLatest'],
-                            0.5,  // More visible for latest
+                            0.8,  // More visible for latest
                             [
                                 'interpolate',
                                 ['linear'],
@@ -939,7 +940,7 @@ body { margin: 0; padding: 0; }
                         'circle-color': [
                             'case',
                             ['get', 'isLatest'],
-                            '#0066ff',  // Latest earthquake (blue)
+                            '#ef6461',  // Latest earthquake (bittersweet)
                             [
                                 'interpolate',
                                 ['linear'],
@@ -954,7 +955,13 @@ body { margin: 0; padding: 0; }
                         'circle-stroke-width': [
                             'case',
                             ['get', 'isLatest'],
-                            3,  // Thicker border for latest
+                            [
+                                'interpolate',
+                                ['linear'],
+                                ['get', 'magnitude'],
+                                0, 2,  // Minimum stroke width for latest
+                                9, 4   // Maximum stroke width for latest
+                            ],
                             [
                                 'interpolate',
                                 ['linear'],
@@ -966,7 +973,7 @@ body { margin: 0; padding: 0; }
                         'circle-stroke-color': [
                             'case',
                             ['get', 'isLatest'],
-                            'rgba(0, 102, 255, 0.5)',  // Latest earthquake (blue)
+                            '#e4b363',  // Latest earthquake stroke (earth-yellow)
                             'rgba(255, 255, 255, 0.5)'
                         ]
                     }
