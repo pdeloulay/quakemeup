@@ -175,25 +175,7 @@
             border-top: 1px solid #9A9B73;
         }
 
-        .location-success {
-            background-color: rgba(68, 47, 56, 0.95);
-            border: 1px solid #9A9B73;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin-top: 1rem;
-            display: none;
-            backdrop-filter: blur(5px);
-        }
 
-        .location-success.visible {
-            display: block;
-        }
-
-        .location-success h3 {
-            color: #E7F9A9;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
 
         /* Add styles for enabled location button state */
         .location-enabled {
@@ -283,12 +265,7 @@
                                 </ul>
                             </div>
                         </div>
-                        <!-- Add location success message -->
-                        <div id="locationSuccess" class="location-success mt-4">
-                            <h3>Location Access Enabled</h3>
-                            <p>You will now receive alerts for earthquakes in your area.</p>
-                            <p class="text-sm mt-2">View nearby earthquakes on the <a href="/map" class="text-[#e4b363ff] hover:text-[#ef6461ff]">map</a>.</p>
-                        </div>
+
                     </div>
                 </div>
             </div>
@@ -479,7 +456,6 @@
             const userLocation = document.getElementById('userLocation');
             const enableLocationBtn = document.getElementById('enableLocationBtn');
             const locationErrorHelper = document.getElementById('locationErrorHelper');
-            const locationSuccess = document.getElementById('locationSuccess');
 
             // Function to show browser-specific location instructions
             function showBrowserSpecificInstructions() {
@@ -581,9 +557,8 @@
                 locationAccessStatus.textContent = "Requesting permission...";
                 userLocation.textContent = "Waiting for permission...";
 
-                // Clear any existing error/success states
+                // Clear any existing error state
                 locationErrorHelper.classList.remove('visible');
-                locationSuccess.classList.remove('visible');
 
                 // Request location with a longer timeout
                 navigator.geolocation.getCurrentPosition(
@@ -592,7 +567,6 @@
                         
                         // Update UI with success state
                         locationErrorHelper.classList.remove('visible');
-                        locationSuccess.classList.add('visible');
                         
                         locationAccessStatus.textContent = "Enabled";
                         userLocation.textContent = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
@@ -637,8 +611,6 @@
                     locationAccessStatus.textContent = "Enabled";
                     userLocation.textContent = `${locationData.lat.toFixed(4)}, ${locationData.lng.toFixed(4)}`;
                     locationStatus.classList.remove('hidden');
-                    
-                    locationSuccess.classList.add('visible');
                     
                     // Set button to enabled state
                     setButtonEnabled();
