@@ -464,6 +464,35 @@ body { margin: 0; padding: 0; }
     color: #ff5252;
     font-size: 16px;
 }
+
+/* Add styles for the Go to button */
+.goto-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 12px;
+    padding: 8px 16px;
+    background-color: #0066ff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    width: 100%;
+}
+
+.goto-button:hover {
+    background-color: #0052cc;
+}
+
+.goto-button svg {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    fill: currentColor;
+}
 </style>
 </head>
 <body>
@@ -522,6 +551,12 @@ body { margin: 0; padding: 0; }
             <span class="latest-quake-value" id="latestDepth">-</span>
         </div>
     </div>
+    <button id="gotoLatestQuake" class="goto-button" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/>
+        </svg>
+        Go to location
+    </button>
 </div>
 
 <!-- Filter toggle button for mobile -->
@@ -534,64 +569,104 @@ body { margin: 0; padding: 0; }
 <script>
     mapboxgl.accessToken = '{{.MapboxToken}}';
     
-    // Initial map with default center
+    // Get stored user location from template data
+    const hasStoredLocation = {{.HasLocation}};
+    const storedUserLat = {{.UserLat}};
+    const storedUserLng = {{.UserLng}};
+    
+    // Initial map with default or stored location
     const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/pdeloulay/cmcmn7yxp005a01sq89mchuwx',
         projection: 'globe',
         zoom: 5,
-        center: [30, 15]
+        center: hasStoredLocation ? [storedUserLng, storedUserLat] : [30, 15]
     });
 
     let userLocation = null;
+    let userMarker = null;
 
-    // Try to get user location
+    // Function to add or update user marker
+    function updateUserMarker(lngLat) {
+        if (userMarker) {
+            userMarker.setLngLat(lngLat);
+        } else {
+            userMarker = new mapboxgl.Marker({
+                color: '#0066ff',
+                scale: 0.8
+            })
+            .setLngLat(lngLat)
+            .setPopup(new mapboxgl.Popup().setHTML('<p>Your location</p>'))
+            .addTo(map);
+        }
+    }
+
+    // Function to handle user location update
+    function handleUserLocation(position) {
+        const newLocation = [position.coords.longitude, position.coords.latitude];
+        userLocation = newLocation;
+        
+        // Update marker
+        updateUserMarker(newLocation);
+        
+        // Center map if this is initial load
+        if (!hasStoredLocation) {
+            map.flyTo({
+                center: newLocation,
+                zoom: 5,
+                essential: true
+            });
+        }
+
+        // Store user location
+        fetch('/api/location', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                radius: parseInt(document.getElementById('radiusRange').value),
+                enableAlerts: false,
+                enablePush: false
+            })
+        }).catch(error => console.error('Error storing location:', error));
+
+        // Refresh earthquakes with user location
+        fetchEarthquakes();
+    }
+
+    // Initialize map with stored location if available
+    if (hasStoredLocation) {
+        userLocation = [storedUserLng, storedUserLat];
+        updateUserMarker(userLocation);
+        fetchEarthquakes();
+    }
+
+    // Try to get current user location
     if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
-            // Success callback
-            (position) => {
-                userLocation = [position.coords.longitude, position.coords.latitude];
-                
-                // Center map on user location with appropriate zoom for ~500km radius
-                map.flyTo({
-                    center: userLocation,
-                    zoom: 5,
-                    essential: true
-                });
-
-                // Add a marker for user location
-                new mapboxgl.Marker({
-                    color: '#0066ff',
-                    scale: 0.8
-                })
-                .setLngLat(userLocation)
-                .setPopup(new mapboxgl.Popup().setHTML('<p>Your location</p>'))
-                .addTo(map);
-
-                // Store user location
-                fetch('/api/location', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                        radius: parseInt(document.getElementById('radiusRange').value),
-                        enableAlerts: false,
-                        enablePush: false
-                    })
-                }).catch(error => console.error('Error storing location:', error));
-
-                // Refresh earthquakes with user location
-                fetchEarthquakes();
-            },
-            // Error callback
+            handleUserLocation,
             (error) => {
                 console.log('Error getting location:', error.message);
+                // If we have stored location, use that
+                if (hasStoredLocation) {
+                    userLocation = [storedUserLng, storedUserLat];
+                }
                 fetchEarthquakes();
             },
-            // Options
+            {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            }
+        );
+
+        // Watch for location updates
+        navigator.geolocation.watchPosition(
+            handleUserLocation,
+            (error) => console.log('Error watching location:', error.message),
             {
                 enableHighAccuracy: true,
                 timeout: 5000,
@@ -599,6 +674,10 @@ body { margin: 0; padding: 0; }
             }
         );
     } else {
+        console.log('Geolocation not supported');
+        if (hasStoredLocation) {
+            userLocation = [storedUserLng, storedUserLat];
+        }
         fetchEarthquakes();
     }
 
@@ -684,6 +763,7 @@ body { margin: 0; padding: 0; }
                 // Handle distance display
                 const distanceRow = document.getElementById('latestDistanceRow');
                 const distanceValue = document.getElementById('latestDistance');
+                const gotoButton = document.getElementById('gotoLatestQuake');
                 
                 if (userLocation) {
                     const distance = latest.distance || calculateDistance(
@@ -697,10 +777,21 @@ body { margin: 0; padding: 0; }
                 } else {
                     distanceRow.style.display = 'none';
                 }
+
+                // Show and setup goto button
+                gotoButton.style.display = 'inline-flex';
+                gotoButton.onclick = () => {
+                    map.flyTo({
+                        center: [latest.longitude, latest.latitude],
+                        zoom: 8,
+                        essential: true
+                    });
+                };
                 
                 document.getElementById('latestQuake').classList.remove('hidden');
             } else {
                 document.getElementById('latestQuake').classList.add('hidden');
+                document.getElementById('gotoLatestQuake').style.display = 'none';
             }
 
             const earthquakeFeatures = earthquakes.map(eq => ({
@@ -722,7 +813,13 @@ body { margin: 0; padding: 0; }
             if (map.getSource('earthquakes')) {
                 map.getSource('earthquakes').setData({
                     type: 'FeatureCollection',
-                    features: earthquakeFeatures
+                    features: earthquakeFeatures.map((feature, index) => ({
+                        ...feature,
+                        properties: {
+                            ...feature.properties,
+                            isLatest: index === 0 // Add isLatest property
+                        }
+                    }))
                 });
             } else if (map.loaded()) {
                 // Map is loaded but source doesn't exist yet
@@ -730,7 +827,13 @@ body { margin: 0; padding: 0; }
                     type: 'geojson',
                     data: {
                         type: 'FeatureCollection',
-                        features: earthquakeFeatures
+                        features: earthquakeFeatures.map((feature, index) => ({
+                            ...feature,
+                            properties: {
+                                ...feature.properties,
+                                isLatest: index === 0 // Add isLatest property
+                            }
+                        }))
                     }
                 });
 
@@ -748,21 +851,31 @@ body { margin: 0; padding: 0; }
                             9, 50
                         ],
                         'circle-color': [
-                            'interpolate',
-                            ['linear'],
-                            ['get', 'magnitude'],
-                            0, 'rgba(255, 200, 200, 0.3)',  // Light red for weak quakes
-                            3, 'rgba(255, 150, 150, 0.3)',  // Stronger red
-                            5, 'rgba(255, 100, 100, 0.3)',  // More intense red
-                            7, 'rgba(255, 50, 50, 0.3)',    // Very intense red
-                            9, 'rgba(255, 0, 0, 0.3)'       // Pure red for strongest
+                            'case',
+                            ['get', 'isLatest'],
+                            'rgba(0, 102, 255, 0.3)',  // Latest earthquake (blue)
+                            [
+                                'interpolate',
+                                ['linear'],
+                                ['get', 'magnitude'],
+                                0, 'rgba(255, 200, 200, 0.3)',  // Light red for weak quakes
+                                3, 'rgba(255, 150, 150, 0.3)',  // Stronger red
+                                5, 'rgba(255, 100, 100, 0.3)',  // More intense red
+                                7, 'rgba(255, 50, 50, 0.3)',    // Very intense red
+                                9, 'rgba(255, 0, 0, 0.3)'       // Pure red for strongest
+                            ]
                         ],
                         'circle-opacity': [
-                            'interpolate',
-                            ['linear'],
-                            ['get', 'magnitude'],
-                            0, 0.1,
-                            9, 0.4
+                            'case',
+                            ['get', 'isLatest'],
+                            0.5,  // More visible for latest
+                            [
+                                'interpolate',
+                                ['linear'],
+                                ['get', 'magnitude'],
+                                0, 0.1,
+                                9, 0.4
+                            ]
                         ],
                         'circle-blur': 0.5
                     }
@@ -782,23 +895,38 @@ body { margin: 0; padding: 0; }
                             9, 25
                         ],
                         'circle-color': [
-                            'interpolate',
-                            ['linear'],
-                            ['get', 'magnitude'],
-                            0, 'rgba(255, 200, 200, 1.0)',  // Light red for weak quakes
-                            3, 'rgba(255, 150, 150, 1.0)',  // Stronger red
-                            5, 'rgba(255, 100, 100, 1.0)',  // More intense red
-                            7, 'rgba(255, 50, 50, 1.0)',    // Very intense red
-                            9, 'rgba(255, 0, 0, 1.0)'       // Pure red for strongest
+                            'case',
+                            ['get', 'isLatest'],
+                            '#0066ff',  // Latest earthquake (blue)
+                            [
+                                'interpolate',
+                                ['linear'],
+                                ['get', 'magnitude'],
+                                0, 'rgba(255, 200, 200, 1.0)',  // Light red for weak quakes
+                                3, 'rgba(255, 150, 150, 1.0)',  // Stronger red
+                                5, 'rgba(255, 100, 100, 1.0)',  // More intense red
+                                7, 'rgba(255, 50, 50, 1.0)',    // Very intense red
+                                9, 'rgba(255, 0, 0, 1.0)'       // Pure red for strongest
+                            ]
                         ],
                         'circle-stroke-width': [
-                            'interpolate',
-                            ['linear'],
-                            ['get', 'magnitude'],
-                            0, 1,
-                            9, 3
+                            'case',
+                            ['get', 'isLatest'],
+                            3,  // Thicker border for latest
+                            [
+                                'interpolate',
+                                ['linear'],
+                                ['get', 'magnitude'],
+                                0, 1,
+                                9, 3
+                            ]
                         ],
-                        'circle-stroke-color': 'rgba(255, 255, 255, 0.5)'
+                        'circle-stroke-color': [
+                            'case',
+                            ['get', 'isLatest'],
+                            'rgba(0, 102, 255, 0.5)',  // Latest earthquake (blue)
+                            'rgba(255, 255, 255, 0.5)'
+                        ]
                     }
                 });
 

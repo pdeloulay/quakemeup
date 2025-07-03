@@ -188,6 +188,9 @@ The application is fully responsive and optimized for mobile devices:
 - Enhanced mobile web app capabilities with site manifest
 - Improved initial map view for better local earthquake monitoring
 - Updated map zoom levels for better user experience
+- Added "Go to" button in latest earthquake overlay for quick navigation
+- Enhanced latest earthquake visibility with distinctive blue marker
+- Improved user location handling with persistent storage and live updates
 
 ### [1.0.0] - 2025-07-02
 - Added version management with `.version` file
