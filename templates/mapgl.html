@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Display a map on a webpage</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.js"></script>
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+.nav-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.nav-container h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+.nav-links {
+    color: #666;
+    text-decoration: none;
+    font-size: 16px;
+    transition: color 0.2s ease;
+}
+
+.nav-links:hover {
+    color: #ff5252;
+}
+
+@media (max-width: 640px) {
+    .nav-container {
+        left: 20px;
+    }
+    
+    .nav-links {
+        font-size: 14px;
+    }
+}
+
+.control-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    width: 280px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.control-panel h3 {
+    margin: 0 0 15px;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.control-group {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.control-group:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.control-panel label {
+    display: block;
+    margin: 10px 0 5px;
+    color: #666;
+    font-size: 14px;
+}
+
+.control-panel select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    background: white;
+    color: #333;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.control-panel .range-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.control-panel input[type="range"] {
+    flex-grow: 1;
+}
+
+.control-panel .value-display {
+    min-width: 60px;
+    text-align: right;
+    color: #666;
+    font-size: 14px;
+}
+
+.loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px 40px;
+    border-radius: 8px;
+    color: #333;
+    z-index: 2;
+    display: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.loading.visible {
+    display: block;
+}
+
+.mapboxgl-popup {
+    max-width: 300px;
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+}
+
+.mapboxgl-popup-content {
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.mapboxgl-popup-content h4 {
+    margin: 0 0 10px;
+    color: #333;
+}
+
+.mapboxgl-popup-content p {
+    margin: 5px 0;
+    color: #666;
+}
+
+/* Add keyframe animation for the pulse effect */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.5);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(2);
+    }
+}
+
+.pulse-marker {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(255, 0, 0, 0.3);
+    position: absolute;
+    animation: pulse 2s infinite;
+}
+
+.pulse-marker::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgb(255, 0, 0);
+    border-radius: 50%;
+    transform: scale(0.5);
+}
+
+.latest-quake-overlay {
+    position: absolute;
+    bottom: 40px;
+    left: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+    width: 300px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform-origin: bottom left;
+}
+
+.latest-quake-overlay.hidden {
+    transform: translateY(20px);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.latest-quake-overlay h3 {
+    margin: 0 0 15px;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.latest-quake-overlay .pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #ff5252;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+}
+
+.latest-quake-info {
+    display: grid;
+    gap: 10px;
+}
+
+.latest-quake-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.latest-quake-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.latest-quake-label {
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.latest-quake-value {
+    color: #333;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.latest-quake-value.magnitude {
+    color: #ff5252;
+    font-size: 16px;
+}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<nav class="nav-container">
+    <a href="/" class="nav-links">Home</a>
+</nav>
+<div class="control-panel">
+    <h3>Earthquake Filter</h3>
+    <div class="control-group">
+        <label for="timeRange">Time Range</label>
+        <select id="timeRange">
+            <option value="24">Last 24 Hours</option>
+            <option value="48">Last 48 Hours</option>
+            <option value="168" selected>Last Week</option>
+            <option value="720">Last Month</option>
+        </select>
+    </div>
+    <div class="control-group">
+        <label for="magnitudeRange">Minimum Magnitude</label>
+        <div class="range-container">
+            <input type="range" id="magnitudeRange" min="0" max="9" step="0.1" value="0.5">
+            <span id="magnitudeValue" class="value-display">0.5</span>
+        </div>
+    </div>
+    <div class="control-group">
+        <label for="radiusRange">Search Radius (km)</label>
+        <div class="range-container">
+            <input type="range" id="radiusRange" min="100" max="20037" step="100" value="850">
+            <span id="radiusValue" class="value-display">850 km</span>
+        </div>
+    </div>
+</div>
+<div id="loading" class="loading">Loading earthquake data...</div>
+<div id="latestQuake" class="latest-quake-overlay hidden">
+    <h3>Latest Earthquake <span class="pulse-dot"></span></h3>
+    <div class="latest-quake-info">
+        <div class="latest-quake-row">
+            <span class="latest-quake-label">Magnitude</span>
+            <span class="latest-quake-value magnitude" id="latestMagnitude">-</span>
+        </div>
+        <div class="latest-quake-row">
+            <span class="latest-quake-label">Location</span>
+            <span class="latest-quake-value" id="latestLocation">-</span>
+        </div>
+        <div class="latest-quake-row" id="latestDistanceRow" style="display: none;">
+            <span class="latest-quake-label">Distance</span>
+            <span class="latest-quake-value" id="latestDistance">-</span>
+        </div>
+        <div class="latest-quake-row">
+            <span class="latest-quake-label">Time</span>
+            <span class="latest-quake-value" id="latestTime">-</span>
+        </div>
+        <div class="latest-quake-row">
+            <span class="latest-quake-label">Depth</span>
+            <span class="latest-quake-value" id="latestDepth">-</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    mapboxgl.accessToken = '{{.MapboxToken}}';
+    
+    // Initial map with default center
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/pdeloulay/cmcmn7yxp005a01sq89mchuwx',
+        projection: 'globe',
+        zoom: 2,
+        center: [30, 15]
+    });
+
+    let userLocation = null;
+
+    // Try to get user location
+    if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            // Success callback
+            (position) => {
+                userLocation = [position.coords.longitude, position.coords.latitude];
+                
+                // Center map on user location
+                map.flyTo({
+                    center: userLocation,
+                    zoom: 2,
+                    essential: true
+                });
+
+                // Add a marker for user location
+                new mapboxgl.Marker({
+                    color: '#0066ff',
+                    scale: 0.8
+                })
+                .setLngLat(userLocation)
+                .setPopup(new mapboxgl.Popup().setHTML('<p>Your location</p>'))
+                .addTo(map);
+
+                // Store user location
+                fetch('/api/location', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        radius: parseInt(document.getElementById('radiusRange').value),
+                        enableAlerts: false,
+                        enablePush: false
+                    })
+                }).catch(error => console.error('Error storing location:', error));
+
+                // Refresh earthquakes with user location
+                fetchEarthquakes();
+            },
+            // Error callback
+            (error) => {
+                console.log('Error getting location:', error.message);
+                fetchEarthquakes();
+            },
+            // Options
+            {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            }
+        );
+    } else {
+        fetchEarthquakes();
+    }
+
+    // Get color based on magnitude
+    function getMagnitudeColor(magnitude) {
+        const opacity = Math.min(1, magnitude / 6);
+        return `rgba(255, 0, 0, ${opacity})`;
+    }
+
+    // Get radius based on magnitude
+    function getMagnitudeRadius(magnitude) {
+        return Math.max(8, Math.pow(2, magnitude) * 0.8);
+    }
+
+    // Format time ago
+    function getTimeAgo(timestamp) {
+        const seconds = Math.floor((new Date() - new Date(timestamp)) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + " years ago";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + " months ago";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + " days ago";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + " hours ago";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + " minutes ago";
+        return Math.floor(seconds) + " seconds ago";
+    }
+
+    // Fetch and display earthquakes
+    async function fetchEarthquakes() {
+        const loading = document.getElementById('loading');
+        loading.classList.add('visible');
+
+        try {
+            // Get filter values
+            const timeRange = document.getElementById('timeRange').value;
+            const minMagnitude = document.getElementById('magnitudeRange').value;
+            const radius = document.getElementById('radiusRange').value;
+
+            // Build query parameters
+            const params = new URLSearchParams({
+                hours: timeRange,
+                minMagnitude: minMagnitude
+            });
+
+            if (userLocation) {
+                params.append('lat', userLocation[1]);
+                params.append('lon', userLocation[0]);
+                params.append('radius', radius);
+            }
+
+            const response = await fetch(`/api/quakes?${params}`);
+            const earthquakes = await response.json();
+            
+            // Update latest earthquake overlay
+            if (earthquakes.length > 0) {
+                const latest = earthquakes[0]; // Assuming the API returns sorted data with newest first
+                document.getElementById('latestMagnitude').textContent = latest.magnitude.toFixed(1);
+                document.getElementById('latestLocation').textContent = latest.place;
+                document.getElementById('latestTime').textContent = getTimeAgo(latest.time);
+                document.getElementById('latestDepth').textContent = `${latest.depth.toFixed(1)} km`;
+                
+                // Handle distance display
+                const distanceRow = document.getElementById('latestDistanceRow');
+                const distanceValue = document.getElementById('latestDistance');
+                
+                if (userLocation) {
+                    const distance = latest.distance || calculateDistance(
+                        userLocation[1], // latitude
+                        userLocation[0], // longitude
+                        latest.latitude,
+                        latest.longitude
+                    );
+                    distanceRow.style.display = 'flex';
+                    distanceValue.textContent = `${distance.toFixed(1)} km`;
+                } else {
+                    distanceRow.style.display = 'none';
+                }
+                
+                document.getElementById('latestQuake').classList.remove('hidden');
+            } else {
+                document.getElementById('latestQuake').classList.add('hidden');
+            }
+
+            const earthquakeFeatures = earthquakes.map(eq => ({
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: [eq.longitude, eq.latitude]
+                },
+                properties: {
+                    magnitude: eq.magnitude,
+                    depth: eq.depth,
+                    place: eq.place,
+                    time: eq.time,
+                    distance: eq.distance
+                }
+            }));
+
+            // Update or create the source and layer
+            if (map.getSource('earthquakes')) {
+                map.getSource('earthquakes').setData({
+                    type: 'FeatureCollection',
+                    features: earthquakeFeatures
+                });
+            } else if (map.loaded()) {
+                // Map is loaded but source doesn't exist yet
+                map.addSource('earthquakes', {
+                    type: 'geojson',
+                    data: {
+                        type: 'FeatureCollection',
+                        features: earthquakeFeatures
+                    }
+                });
+
+                // Add the pulse circle layer
+                map.addLayer({
+                    'id': 'earthquake-pulse',
+                    'type': 'circle',
+                    'source': 'earthquakes',
+                    'paint': {
+                        'circle-radius': [
+                            'interpolate',
+                            ['linear'],
+                            ['get', 'magnitude'],
+                            0, 10,
+                            9, 50
+                        ],
+                        'circle-color': 'rgba(255, 0, 0, 0.3)',
+                        'circle-opacity': [
+                            'interpolate',
+                            ['linear'],
+                            ['get', 'magnitude'],
+                            0, 0.1,
+                            9, 0.4
+                        ],
+                        'circle-blur': 0.5
+                    }
+                });
+
+                // Add the main circle layer
+                map.addLayer({
+                    'id': 'earthquake-circles',
+                    'type': 'circle',
+                    'source': 'earthquakes',
+                    'paint': {
+                        'circle-radius': [
+                            'interpolate',
+                            ['linear'],
+                            ['get', 'magnitude'],
+                            0, 5,
+                            9, 25
+                        ],
+                        'circle-color': [
+                            'interpolate',
+                            ['linear'],
+                            ['get', 'magnitude'],
+                            0, 'rgba(255, 0, 0, 0.4)',
+                            4, 'rgba(255, 0, 0, 0.6)',
+                            6, 'rgba(255, 0, 0, 0.8)',
+                            8, 'rgba(255, 0, 0, 1.0)'
+                        ],
+                        'circle-stroke-width': 2,
+                        'circle-stroke-color': 'rgba(255, 255, 255, 0.5)'
+                    }
+                });
+
+                // Add click event
+                map.on('click', 'earthquake-circles', (e) => {
+                    const coordinates = e.features[0].geometry.coordinates.slice();
+                    const props = e.features[0].properties;
+                    
+                    // Create popup content
+                    const description = `
+                        <h4>Magnitude ${props.magnitude.toFixed(1)}</h4>
+                        <p>${props.place}</p>
+                        <p>Depth: ${props.depth.toFixed(2)} km</p>
+                        <p>${getTimeAgo(props.time)}</p>
+                        ${props.distance ? `<p>Distance: ${props.distance.toFixed(1)} km from you</p>` : ''}
+                    `;
+
+                    new mapboxgl.Popup()
+                        .setLngLat(coordinates)
+                        .setHTML(description)
+                        .addTo(map);
+                });
+
+                // Change cursor on hover
+                map.on('mouseenter', 'earthquake-circles', () => {
+                    map.getCanvas().style.cursor = 'pointer';
+                });
+                map.on('mouseleave', 'earthquake-circles', () => {
+                    map.getCanvas().style.cursor = '';
+                });
+            } else {
+                // Map not loaded yet, wait for load
+                map.once('load', () => fetchEarthquakes());
+            }
+        } catch (error) {
+            console.error('Error fetching earthquake data:', error);
+        } finally {
+            loading.classList.remove('visible');
+        }
+    }
+
+    // Debounce function to limit API calls
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Debounced version of fetchEarthquakes
+    const debouncedFetch = debounce(fetchEarthquakes, 300);
+
+    // Event listeners for filters
+    document.getElementById('timeRange').addEventListener('change', debouncedFetch);
+    
+    // For range inputs, update display immediately but debounce the fetch
+    document.getElementById('magnitudeRange').addEventListener('input', (e) => {
+        document.getElementById('magnitudeValue').textContent = parseFloat(e.target.value).toFixed(1);
+    });
+    document.getElementById('magnitudeRange').addEventListener('change', debouncedFetch);
+    
+    document.getElementById('radiusRange').addEventListener('input', (e) => {
+        document.getElementById('radiusValue').textContent = `${e.target.value} km`;
+    });
+    document.getElementById('radiusRange').addEventListener('change', debouncedFetch);
+</script>
+</body>
+</html>

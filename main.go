@@ -11,9 +11,12 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 type PageData struct {
@@ -174,13 +177,61 @@ type AlertPageData struct {
 	LatestQuake *Earthquake
 }
 
+type MapPageData struct {
+	HasLocation bool
+	UserLat     float64
+	UserLng     float64
+	Radius      int
+	MapboxToken string
+}
+
+// CORSMiddleware adds CORS headers to the response
+func CORSMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Add CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		// Handle preflight requests
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
+	// Load environment variables from .env file
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Warning: Error loading .env file: %v", err)
+	}
+
+	// Load Mapbox token from environment variable
+	mapboxToken := os.Getenv("MAPBOX_TOKEN")
+	log.Printf("Loaded MAPBOX_TOKEN: %s", mapboxToken)
+	if mapboxToken == "" {
+		log.Fatal("MAPBOX_TOKEN environment variable is required")
+	}
+
+	// Get port from environment variable or use default
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	// Create a new mux for routing
+	mux := http.NewServeMux()
+
 	// Serve static files
 	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	// Home page
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/home.html")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -190,8 +241,8 @@ func main() {
 	})
 
 	// Map page
-	http.HandleFunc("/map", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Map page requested from %s", r.RemoteAddr)
+	mux.HandleFunc("/mapgl", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Map GL page requested from %s", r.RemoteAddr)
 
 		// Get user's location from stored data
 		userID, err := getUserID(r)
@@ -207,13 +258,9 @@ func main() {
 		locationMutex.RUnlock()
 
 		// Prepare template data
-		data := struct {
-			HasLocation bool
-			UserLat     float64
-			UserLng     float64
-			Radius      int
-		}{
+		data := MapPageData{
 			HasLocation: hasLocation,
+			MapboxToken: mapboxToken,
 		}
 
 		if hasLocation {
@@ -225,22 +272,23 @@ func main() {
 			log.Printf("No location data found for user %s", userID)
 		}
 
-		tmpl, err := template.ParseFiles("templates/map.html")
+		// Parse and execute the template
+		tmpl, err := template.ParseFiles("templates/mapgl.html")
 		if err != nil {
-			log.Printf("Error parsing map template: %v", err)
+			log.Printf("Error parsing mapgl template: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		if err := tmpl.Execute(w, data); err != nil {
-			log.Printf("Error executing map template: %v", err)
+			log.Printf("Error executing mapgl template: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	})
 
 	// Privacy Policy page
-	http.HandleFunc("/privacy", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/privacy", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/privacy.html")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -250,7 +298,7 @@ func main() {
 	})
 
 	// Terms of Service page
-	http.HandleFunc("/terms", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/terms", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/terms.html")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -260,7 +308,7 @@ func main() {
 	})
 
 	// About page
-	http.HandleFunc("/about", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/about", func(w http.ResponseWriter, r *http.Request) {
 		tmpl, err := template.ParseFiles("templates/about.html")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -270,21 +318,23 @@ func main() {
 	})
 
 	// API endpoint for earthquakes
-	http.HandleFunc("/api/quakes", quakesHandler)
+	mux.HandleFunc("/api/quakes", quakesHandler)
 
 	// Handle location API
-	http.HandleFunc("/api/location", handleLocation)
+	mux.HandleFunc("/api/location", handleLocation)
 
 	// Alert handler
-	http.HandleFunc("/latest", alertHandler)
+	mux.HandleFunc("/latest", alertHandler)
 
 	// Start cleanup goroutine
 	go cleanupOldData()
 
+	// Apply CORS middleware to all routes
+	handler := CORSMiddleware(mux)
+
 	// Start server
-	port := 8080
-	log.Printf("Server starting on port %d...", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
+	log.Printf("Server starting on port %s...", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), handler))
 }
 
 func handleLocation(w http.ResponseWriter, r *http.Request) {
@@ -428,7 +478,6 @@ func fetchEarthquakes(startTime time.Time, minMagnitude float64, limit int) ([]E
 		earthquakes = append(earthquakes, earthquake)
 	}
 
-	log.Printf("Successfully fetched %d earthquakes", len(earthquakes))
 	return earthquakes, nil
 }
 

@@ -194,6 +194,17 @@
             font-weight: bold;
             margin-bottom: 0.5rem;
         }
+
+        /* Add styles for enabled location button state */
+        .location-enabled {
+            background-color: rgb(22 163 74) !important; /* Green color */
+            cursor: default !important;
+            opacity: 1 !important;
+        }
+
+        .location-enabled:hover {
+            background-color: rgb(22 163 74) !important; /* Keep same green on hover */
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white">
@@ -206,6 +217,7 @@
                 <div class="space-x-6">
                     <a href="#" class="hover:text-red-400 transition-colors">Home</a>
                     <a href="/latest" class="hover:text-red-400 transition-colors">Latest</a>
+                    <a href="/mapgl" class="hover:text-red-400 transition-colors">Map</a>
                     <a href="/about" class="hover:text-red-400 transition-colors">About</a>
                 </div>
             </div>
@@ -225,6 +237,7 @@
                 <div class="flex flex-col space-y-4 p-4">
                     <a href="/" class="hover:text-red-400 transition-colors">Home</a>
                     <a href="/latest" class="hover:text-red-400 transition-colors">Latest</a>
+                    <a href="/mapgl" class="hover:text-red-400 transition-colors">Mapbox</a>
                     <a href="/about" class="hover:text-red-400 transition-colors">About</a>
                 </div>
             </div>
@@ -253,6 +266,28 @@
                         <div id="locationStatus" class="mt-4 text-sm text-gray-300 hidden">
                             <p>Location access: <span id="locationAccessStatus">Not enabled</span></p>
                             <p>Your location: <span id="userLocation">Not available</span></p>
+                        </div>
+                        <!-- Add location error helper -->
+                        <div id="locationErrorHelper" class="location-error-helper mt-4">
+                            <h3>Location Access Required</h3>
+                            <p class="mb-2">Please enable location access to receive local earthquake alerts:</p>
+                            <ul id="browserInstructions" class="mb-4">
+                                <!-- Instructions will be populated by JavaScript -->
+                            </ul>
+                            <div class="browser-specific">
+                                <p class="text-sm">Need help? Check your browser settings:</p>
+                                <ul class="text-sm mt-2">
+                                    <li>Make sure location services are enabled</li>
+                                    <li>Allow location access when prompted</li>
+                                    <li>Refresh the page after enabling access</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- Add location success message -->
+                        <div id="locationSuccess" class="location-success mt-4">
+                            <h3>Location Access Enabled</h3>
+                            <p>You will now receive alerts for earthquakes in your area.</p>
+                            <p class="text-sm mt-2">View nearby earthquakes on the <a href="/map" class="text-[#e4b363ff] hover:text-[#ef6461ff]">map</a>.</p>
                         </div>
                     </div>
                 </div>
@@ -436,112 +471,136 @@
 
     <!-- Geolocation and Alerts JavaScript -->
     <script>
-        // Location status elements
-        const locationStatus = document.getElementById('locationStatus');
-        const locationAccessStatus = document.getElementById('locationAccessStatus');
-        const userLocation = document.getElementById('userLocation');
-        const enableLocationBtn = document.getElementById('enableLocationBtn');
-
-        // Function to show browser-specific location instructions
-        function showBrowserSpecificInstructions() {
-            const browserInstructions = document.getElementById('browserInstructions');
-            const userAgent = navigator.userAgent.toLowerCase();
-            let instructions = [];
-
-            if (userAgent.includes('chrome')) {
-                instructions = [
-                    'Click the lock/info icon in the address bar',
-                    'Select "Site settings"',
-                    'Find "Location" and change it to "Allow"'
-                ];
-            } else if (userAgent.includes('firefox')) {
-                instructions = [
-                    'Click the lock/shield icon in the address bar',
-                    'Click "More Information"',
-                    'Under "Permissions", find "Access Your Location" and select "Allow"'
-                ];
-            } else if (userAgent.includes('safari')) {
-                instructions = [
-                    'Open Safari Preferences',
-                    'Go to Privacy & Security',
-                    'Under Website tracking, ensure Location Services is enabled',
-                    'When prompted, click "Allow" for this website'
-                ];
-            } else {
-                instructions = [
-                    'Check your browser settings for location permissions',
-                    'Look for site-specific permissions or privacy settings',
-                    'Ensure location access is enabled for this website'
-                ];
-            }
-
-            browserInstructions.innerHTML = instructions
-                .map(instruction => `<li>${instruction}</li>`)
-                .join('');
-        }
-
-        // Enhanced location error handling
-        function handleLocationError(error) {
-            const locationErrorHelper = document.getElementById('locationErrorHelper');
-            const locationSuccess = document.getElementById('locationSuccess');
+        // Wait for DOM to be fully loaded before accessing elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Location status elements
+            const locationStatus = document.getElementById('locationStatus');
             const locationAccessStatus = document.getElementById('locationAccessStatus');
             const userLocation = document.getElementById('userLocation');
             const enableLocationBtn = document.getElementById('enableLocationBtn');
-            
-            locationErrorHelper.classList.add('visible');
-            locationSuccess.classList.remove('visible');
-            showBrowserSpecificInstructions();
+            const locationErrorHelper = document.getElementById('locationErrorHelper');
+            const locationSuccess = document.getElementById('locationSuccess');
 
-            switch (error.code) {
-                case error.PERMISSION_DENIED:
-                    locationAccessStatus.textContent = 'Error: Location permission denied';
-                    enableLocationBtn.textContent = 'Try Enabling Location Again';
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    locationAccessStatus.textContent = 'Error: Location unavailable';
-                    enableLocationBtn.textContent = 'Retry Location Access';
-                    break;
-                case error.TIMEOUT:
-                    locationAccessStatus.textContent = 'Error: Location request timed out';
-                    enableLocationBtn.textContent = 'Retry Location Access';
-                    break;
-                default:
-                    locationAccessStatus.textContent = 'Error: Unable to get location';
-                    enableLocationBtn.textContent = 'Retry Location Access';
+            // Function to show browser-specific location instructions
+            function showBrowserSpecificInstructions() {
+                const browserInstructions = document.getElementById('browserInstructions');
+                const userAgent = navigator.userAgent.toLowerCase();
+                let instructions = [];
+
+                if (userAgent.includes('chrome')) {
+                    instructions = [
+                        'Click the lock/info icon in the address bar',
+                        'Select "Site settings"',
+                        'Find "Location" and change it to "Allow"'
+                    ];
+                } else if (userAgent.includes('firefox')) {
+                    instructions = [
+                        'Click the lock/shield icon in the address bar',
+                        'Click "More Information"',
+                        'Under "Permissions", find "Access Your Location" and select "Allow"'
+                    ];
+                } else if (userAgent.includes('safari')) {
+                    instructions = [
+                        'Open Safari Preferences',
+                        'Go to Privacy & Security',
+                        'Under Website tracking, ensure Location Services is enabled',
+                        'When prompted, click "Allow" for this website'
+                    ];
+                } else {
+                    instructions = [
+                        'Check your browser settings for location permissions',
+                        'Look for site-specific permissions or privacy settings',
+                        'Ensure location access is enabled for this website'
+                    ];
+                }
+
+                browserInstructions.innerHTML = instructions
+                    .map(instruction => `<li>${instruction}</li>`)
+                    .join('');
             }
-            
-            userLocation.textContent = 'Not available';
-            locationStatus.classList.remove('hidden');
-            enableLocationBtn.classList.remove('earthquake-pulse');
-            
-            // Log for debugging
-            console.error('Geolocation error:', error);
-        }
 
-        // Handle location permission
-        enableLocationBtn.addEventListener('click', () => {
-            if ("geolocation" in navigator) {
-                enableLocationBtn.textContent = 'Requesting Location...';
-                enableLocationBtn.classList.add('opacity-75', 'cursor-wait');
+            // Function to update button to enabled state
+            function setButtonEnabled() {
+                enableLocationBtn.textContent = 'Location Enabled';
+                enableLocationBtn.disabled = true;
+                enableLocationBtn.classList.remove('opacity-75', 'cursor-wait', 'earthquake-pulse', 'bg-red-600', 'hover:bg-red-700');
+                enableLocationBtn.classList.add('location-enabled');
+            }
+
+            // Enhanced error handling function
+            function handleLocationError(error) {
+                locationErrorHelper.classList.add('visible');
+                locationSuccess.classList.remove('visible');
+                showBrowserSpecificInstructions();
+
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        locationAccessStatus.textContent = 'Error: Location permission denied';
+                        enableLocationBtn.textContent = 'Location Access Denied';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        locationAccessStatus.textContent = 'Error: Location unavailable';
+                        enableLocationBtn.textContent = 'Retry Location Access';
+                        break;
+                    case error.TIMEOUT:
+                        locationAccessStatus.textContent = 'Error: Location request timed out';
+                        enableLocationBtn.textContent = 'Retry Location Access';
+                        break;
+                    default:
+                        locationAccessStatus.textContent = 'Error: Unable to get location';
+                        enableLocationBtn.textContent = 'Retry Location Access';
+                }
                 
+                userLocation.textContent = 'Not available';
+                locationStatus.classList.remove('hidden');
+                enableLocationBtn.classList.remove('earthquake-pulse', 'bg-green-600');
+                enableLocationBtn.classList.add('bg-red-600');
+                
+                // Log for debugging
+                console.error('Geolocation error:', error);
+            }
+
+            // Handle location permission
+            enableLocationBtn.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    locationAccessStatus.textContent = "Not supported by your browser";
+                    locationStatus.classList.remove('hidden');
+                    locationErrorHelper.classList.add('visible');
+                    enableLocationBtn.classList.remove('earthquake-pulse');
+                    return;
+                }
+
+                // Update button state before requesting
+                enableLocationBtn.textContent = 'Requesting Location...';
+                enableLocationBtn.disabled = true;
+                enableLocationBtn.classList.add('opacity-75', 'cursor-wait');
+                enableLocationBtn.classList.remove('bg-green-600', 'earthquake-pulse', 'location-enabled');
+                
+                // Show status immediately
+                locationStatus.classList.remove('hidden');
+                locationAccessStatus.textContent = "Requesting permission...";
+                userLocation.textContent = "Waiting for permission...";
+
+                // Clear any existing error/success states
+                locationErrorHelper.classList.remove('visible');
+                locationSuccess.classList.remove('visible');
+
+                // Request location with a longer timeout
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
                         const { latitude, longitude } = position.coords;
-                        const locationErrorHelper = document.getElementById('locationErrorHelper');
-                        const locationSuccess = document.getElementById('locationSuccess');
                         
+                        // Update UI with success state
                         locationErrorHelper.classList.remove('visible');
                         locationSuccess.classList.add('visible');
                         
                         locationAccessStatus.textContent = "Enabled";
                         userLocation.textContent = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-                        locationStatus.classList.remove('hidden');
                         
-                        enableLocationBtn.textContent = 'Location Enabled';
-                        enableLocationBtn.classList.remove('opacity-75', 'cursor-wait', 'earthquake-pulse');
-                        enableLocationBtn.classList.add('bg-green-600');
+                        // Set button to enabled state
+                        setButtonEnabled();
                         
-                        // Store location in localStorage
+                        // Store location in localStorage with timestamp
                         localStorage.setItem('userLocation', JSON.stringify({
                             lat: latitude,
                             lng: longitude,
@@ -551,62 +610,73 @@
                         // Send location to server
                         sendLocationToServer(latitude, longitude);
                     },
-                    handleLocationError,
+                    (error) => {
+                        // Re-enable button on error
+                        enableLocationBtn.disabled = false;
+                        enableLocationBtn.classList.remove('opacity-75', 'cursor-wait', 'location-enabled');
+                        
+                        handleLocationError(error);
+                    },
                     {
                         enableHighAccuracy: true,
-                        timeout: 10000,
+                        timeout: 20000, // Increased timeout to 20 seconds
                         maximumAge: 0
                     }
                 );
-            } else {
-                locationAccessStatus.textContent = "Not supported by your browser";
-                locationStatus.classList.remove('hidden');
-                const locationErrorHelper = document.getElementById('locationErrorHelper');
-                locationErrorHelper.classList.add('visible');
-                enableLocationBtn.classList.remove('earthquake-pulse');
+            });
+
+            // Check for existing location on page load
+            const savedLocation = localStorage.getItem('userLocation');
+            if (savedLocation) {
+                const locationData = JSON.parse(savedLocation);
+                const locationAge = new Date() - new Date(locationData.timestamp);
+                const fiveMinutes = 5 * 60 * 1000;
+                
+                if (locationAge < fiveMinutes) {
+                    // Location is recent enough, use it
+                    locationAccessStatus.textContent = "Enabled";
+                    userLocation.textContent = `${locationData.lat.toFixed(4)}, ${locationData.lng.toFixed(4)}`;
+                    locationStatus.classList.remove('hidden');
+                    
+                    locationSuccess.classList.add('visible');
+                    
+                    // Set button to enabled state
+                    setButtonEnabled();
+                } else {
+                    // Location is too old, clear it
+                    localStorage.removeItem('userLocation');
+                    enableLocationBtn.textContent = 'Enable Location Alerts';
+                    enableLocationBtn.disabled = false;
+                    enableLocationBtn.classList.add('earthquake-pulse');
+                    enableLocationBtn.classList.remove('location-enabled');
+                }
+            }
+
+            // Function to send location to server
+            function sendLocationToServer(latitude, longitude) {
+                const radius = 20038;
+                fetch('/api/location', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        latitude,
+                        longitude,
+                        radius: radius,
+                        enableAlerts: true,
+                        enablePush: true
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Location saved:', data);
+                })
+                .catch(error => {
+                    console.error('Error saving location:', error);
+                });
             }
         });
-
-        // Check for existing location on page load
-        const savedLocation = localStorage.getItem('userLocation');
-        if (savedLocation) {
-            const { lat, lng } = JSON.parse(savedLocation);
-            locationAccessStatus.textContent = "Enabled";
-            userLocation.textContent = `${parseFloat(lat).toFixed(4)}, ${parseFloat(lng).toFixed(4)}`;
-            locationStatus.classList.remove('hidden');
-            
-            const locationSuccess = document.getElementById('locationSuccess');
-            locationSuccess.classList.add('visible');
-            
-            enableLocationBtn.textContent = 'Location Enabled';
-            enableLocationBtn.classList.remove('earthquake-pulse');
-            enableLocationBtn.classList.add('bg-green-600');
-        }
-
-        // Function to send location to server
-        function sendLocationToServer(latitude, longitude) {
-            const radius = 20038;
-            fetch('/api/location', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    latitude,
-                    longitude,
-                    radius: radius,
-                    enableAlerts: true,
-                    enablePush: true
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Location saved:', data);
-            })
-            .catch(error => {
-                console.error('Error saving location:', error);
-            });
-        }
     </script>
 </body>
 </html> 

@@ -676,79 +676,20 @@
         // Enhanced location error handling
         function handleLocationError(error) {
             const locationErrorHelper = document.getElementById('locationErrorHelper');
-            const locationAccessStatus = document.getElementById('locationAccessStatus');
-            const userLocation = document.getElementById('userLocation');
             
             locationErrorHelper.classList.add('visible');
             showBrowserSpecificInstructions();
-
-            switch (error.code) {
-                case error.PERMISSION_DENIED:
-                    locationAccessStatus.textContent = 'Error: Location permission denied';
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    locationAccessStatus.textContent = 'Error: Location unavailable';
-                    break;
-                case error.TIMEOUT:
-                    locationAccessStatus.textContent = 'Error: Location request timed out';
-                    break;
-                default:
-                    locationAccessStatus.textContent = 'Error: Unable to get location';
-            }
             
-            userLocation.textContent = 'Not available';
             locationStatus.classList.remove('hidden');
             
             // Log for debugging
             console.error('Geolocation error:', error);
         }
 
-        // Update the location request function
-        function requestLocation() {
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const { latitude, longitude } = position.coords;
-                        const locationErrorHelper = document.getElementById('locationErrorHelper');
-                        locationErrorHelper.classList.remove('visible');
-                        
-                        locationAccessStatus.textContent = "Enabled";
-                        userLocation.textContent = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-                        locationStatus.classList.remove('hidden');
-                        
-                        // Store location in localStorage
-                        localStorage.setItem('userLocation', JSON.stringify({
-                            lat: latitude,
-                            lng: longitude,
-                            timestamp: new Date().toISOString()
-                        }));
-
-                        // Send location to server
-                        sendLocationToServer(latitude, longitude);
-                        
-                        // Refresh earthquakes with new location
-                        fetchEarthquakes();
-                    },
-                    handleLocationError,
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
-                    }
-                );
-            } else {
-                locationAccessStatus.textContent = "Not supported by your browser";
-                locationStatus.classList.remove('hidden');
-                const locationErrorHelper = document.getElementById('locationErrorHelper');
-                locationErrorHelper.classList.add('visible');
-            }
-        }
-
         // Update the initial load to request location
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Initializing page...');
             loadWorldMap();
-            requestLocation(); // Request location on page load
             fetchEarthquakes();
         });
     </script>
