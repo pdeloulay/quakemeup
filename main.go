@@ -324,7 +324,7 @@ func main() {
 	mux.HandleFunc("/api/location", handleLocation)
 
 	// Alert handler
-	mux.HandleFunc("/latest", alertHandler)
+	mux.HandleFunc("/latest", latestHandler)
 
 	// Start cleanup goroutine
 	go cleanupOldData()
@@ -498,37 +498,62 @@ func quakesHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Parse query parameters
 	query := r.URL.Query()
-	duration := query.Get("duration")
+	hoursStr := query.Get("hours")
 	minMagStr := query.Get("minMagnitude")
 	maxMagStr := query.Get("maxMagnitude")
 	radiusStr := query.Get("radius")
 
-	// Set default values
-	var startTime time.Time
-	switch duration {
-	case "hour":
-		startTime = time.Now().Add(-time.Hour)
-	case "week":
-		startTime = time.Now().AddDate(0, 0, -7)
-	case "month":
-		startTime = time.Now().AddDate(0, -1, 0)
-	default: // default to 24 hours
-		startTime = time.Now().AddDate(0, 0, -1)
+	log.Printf("Raw query parameters - hours: %q, minMag: %q, maxMag: %q, radius: %q",
+		hoursStr, minMagStr, maxMagStr, radiusStr)
+
+	// Parse hours with default of 24
+	hours := 24
+	if hoursStr != "" {
+		var err error
+		hours, err = strconv.Atoi(hoursStr)
+		if err != nil {
+			log.Printf("Invalid hours parameter: %v, using default of 24", err)
+			hours = 24 // fallback to default
+		}
 	}
+
+	// Calculate start time based on hours
+	startTime := time.Now().Add(-time.Duration(hours) * time.Hour)
 
 	minMag := 0.0
 	if minMagStr != "" {
-		minMag, _ = strconv.ParseFloat(minMagStr, 64)
+		var err error
+		minMag, err = strconv.ParseFloat(minMagStr, 64)
+		if err != nil {
+			log.Printf("Invalid minMagnitude parameter: %v, using default of 0.0", err)
+		}
 	}
 
 	maxMag := 10.0
 	if maxMagStr != "" {
-		maxMag, _ = strconv.ParseFloat(maxMagStr, 64)
+		var err error
+		maxMag, err = strconv.ParseFloat(maxMagStr, 64)
+		if err != nil {
+			log.Printf("Invalid maxMagnitude parameter: %v, using default of 10.0", err)
+		}
 	}
 
 	radius := 100 // default radius in km
 	if radiusStr != "" {
-		radius, _ = strconv.Atoi(radiusStr)
+		var err error
+		radius, err = strconv.Atoi(radiusStr)
+		if err != nil {
+			log.Printf("Invalid radius parameter: %v, using default of 100", err)
+		}
+	}
+
+	log.Printf("Processed parameters - hours: %d (start time: %v), minMag: %.1f, maxMag: %.1f, radius: %d km",
+		hours, startTime.Format(time.RFC3339), minMag, maxMag, radius)
+
+	if hasLocation {
+		log.Printf("User location - lat: %.4f, lon: %.4f", userLoc.Latitude, userLoc.Longitude)
+	} else {
+		log.Println("No user location available")
 	}
 
 	// Fetch earthquakes from USGS
@@ -561,19 +586,21 @@ func quakesHandler(w http.ResponseWriter, r *http.Request) {
 		filteredQuakes = append(filteredQuakes, quake)
 	}
 
+	log.Printf("Earthquake results - total: %d, filtered: %d", len(earthquakes), len(filteredQuakes))
+
 	// Return JSON response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(filteredQuakes)
 }
 
-func alertHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Handling /api/alerts request")
+func latestHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("latestHandler() - Start")
 
 	// Get the latest earthquake
 	startTime := time.Now().Add(-24 * time.Hour)
 	earthquakes, err := fetchEarthquakes(startTime, 0, 1)
 	if err != nil {
-		log.Printf("Error in alertHandler: %v", err)
+		log.Printf("Error in latestHandler: %v", err)
 		http.Error(w, "Failed to fetch earthquake data", http.StatusInternalServerError)
 		return
 	}

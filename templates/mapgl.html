@@ -281,7 +281,7 @@ body { margin: 0; padding: 0; }
 <body>
 <div id="map"></div>
 <nav class="nav-container">
-    <a href="/" class="nav-links">Home</a>
+    <a href="/" class="nav-links">QuakeMeUp</a>
 </nav>
 <div class="control-panel">
     <h3>Earthquake Filter</h3>
@@ -434,6 +434,22 @@ body { margin: 0; padding: 0; }
         return Math.floor(seconds) + " seconds ago";
     }
 
+    // Calculate distance between two points using Haversine formula
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Earth's radius in kilometers
+        const φ1 = lat1 * Math.PI / 180;
+        const φ2 = lat2 * Math.PI / 180;
+        const Δφ = (lat2 - lat1) * Math.PI / 180;
+        const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+        const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ/2) * Math.sin(Δλ/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+        return R * c;
+    }
+
     // Fetch and display earthquakes
     async function fetchEarthquakes() {
         const loading = document.getElementById('loading');
@@ -460,6 +476,8 @@ body { margin: 0; padding: 0; }
             const response = await fetch(`/api/quakes?${params}`);
             const earthquakes = await response.json();
             
+            console.log("Earthquake Count =", earthquakes.length);
+
             // Update latest earthquake overlay
             if (earthquakes.length > 0) {
                 const latest = earthquakes[0]; // Assuming the API returns sorted data with newest first
@@ -534,7 +552,16 @@ body { margin: 0; padding: 0; }
                             0, 10,
                             9, 50
                         ],
-                        'circle-color': 'rgba(255, 0, 0, 0.3)',
+                        'circle-color': [
+                            'interpolate',
+                            ['linear'],
+                            ['get', 'magnitude'],
+                            0, 'rgba(255, 200, 200, 0.3)',  // Light red for weak quakes
+                            3, 'rgba(255, 150, 150, 0.3)',  // Stronger red
+                            5, 'rgba(255, 100, 100, 0.3)',  // More intense red
+                            7, 'rgba(255, 50, 50, 0.3)',    // Very intense red
+                            9, 'rgba(255, 0, 0, 0.3)'       // Pure red for strongest
+                        ],
                         'circle-opacity': [
                             'interpolate',
                             ['linear'],
@@ -563,12 +590,19 @@ body { margin: 0; padding: 0; }
                             'interpolate',
                             ['linear'],
                             ['get', 'magnitude'],
-                            0, 'rgba(255, 0, 0, 0.4)',
-                            4, 'rgba(255, 0, 0, 0.6)',
-                            6, 'rgba(255, 0, 0, 0.8)',
-                            8, 'rgba(255, 0, 0, 1.0)'
+                            0, 'rgba(255, 200, 200, 1.0)',  // Light red for weak quakes
+                            3, 'rgba(255, 150, 150, 1.0)',  // Stronger red
+                            5, 'rgba(255, 100, 100, 1.0)',  // More intense red
+                            7, 'rgba(255, 50, 50, 1.0)',    // Very intense red
+                            9, 'rgba(255, 0, 0, 1.0)'       // Pure red for strongest
                         ],
-                        'circle-stroke-width': 2,
+                        'circle-stroke-width': [
+                            'interpolate',
+                            ['linear'],
+                            ['get', 'magnitude'],
+                            0, 1,
+                            9, 3
+                        ],
                         'circle-stroke-color': 'rgba(255, 255, 255, 0.5)'
                     }
                 });
