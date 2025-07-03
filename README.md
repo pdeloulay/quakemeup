@@ -1,6 +1,7 @@
 # QuakeMeUp
 
 Real-time earthquake monitoring and alert system that keeps you informed about seismic activities worldwide.
+Hosted at https://quakemeup.leapcell.app/ 
 
 ## Table of Contents
 - [Features](#features)
@@ -42,31 +43,11 @@ Real-time earthquake monitoring and alert system that keeps you informed about s
 
 1. Create a `.env` file in the root directory:
 ```env
-# Server Configuration
-PORT=8080
-ENV=development
-
-# USGS API Configuration
-USGS_API_ENDPOINT=https://earthquake.usgs.gov/fdsnws/event/1/query
-USGS_API_TIMEOUT=30
-
 # Mapbox Configuration (required for map visualization)
 MAPBOX_TOKEN=your_mapbox_token_here
-
-# Security
-SESSION_SECRET=your_session_secret_here
-
-# Optional: Push Notifications (if enabled)
-VAPID_PUBLIC_KEY=your_vapid_public_key
-VAPID_PRIVATE_KEY=your_vapid_private_key
 ```
 
-2. Update the environment variables:
-   - Replace `your_mapbox_token_here` with your Mapbox access token
-   - Generate a secure random string for `SESSION_SECRET`
-   - If using push notifications, add VAPID keys
-
-### Installation
+### Installation (local)
 
 1. Clone the repository:
 ```bash
@@ -182,12 +163,12 @@ The application is fully responsive and optimized for mobile devices:
 - All sensitive operations are protected with mutex locks
 - Environment variables are used for sensitive configuration
 
-## Deployment
+## Deployment (Cloud)
 
 ### Leapcell Deployment
 
-The application is configured for deployment on Leapcell. Follow these steps to deploy:
-
+App is running at https://quakemeup.leapcell.app/
+Leapcell Dashboard: https://leapcell.io/workspace/wsp1940861468352741376/dashboard
 
 3. Configure environment variables in Leapcell:
    - Go to your project settings in Dashboard
