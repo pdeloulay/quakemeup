@@ -15,6 +15,8 @@ Real-time earthquake monitoring and alert system that keeps you informed about s
   - [Color Palette](#color-palette)
   - [Security Considerations](#security-considerations)
   - [Contributing](#contributing)
+- [Deployment](#deployment)
+  - [Vercel Deployment](#vercel-deployment)
 - [Changelog](#changelog)
 - [License](#license)
 
@@ -179,6 +181,50 @@ The application is fully responsive and optimized for mobile devices:
 - Push notifications require explicit user permission
 - All sensitive operations are protected with mutex locks
 - Environment variables are used for sensitive configuration
+
+## Deployment
+
+### Vercel Deployment
+
+The application is configured for deployment on Vercel. Follow these steps to deploy:
+
+1. Install Vercel CLI:
+```bash
+npm install -g vercel
+```
+
+2. Login to Vercel:
+```bash
+vercel login
+```
+
+3. Configure environment variables in Vercel:
+   - Go to your project settings in Vercel dashboard
+   - Add the following environment variables:
+     ```
+     MAPBOX_TOKEN=your_mapbox_token
+     SESSION_SECRET=your_session_secret
+     USGS_API_ENDPOINT=https://earthquake.usgs.gov/fdsnws/event/1/query
+     USGS_API_TIMEOUT=30
+     ```
+
+4. Deploy to Vercel:
+```bash
+vercel
+```
+
+5. For production deployment:
+```bash
+vercel --prod
+```
+
+The application uses Vercel's Go runtime and is optimized for serverless deployment. The `vercel.json` configuration handles:
+- Go build configuration
+- Static file serving
+- API routes
+- Environment variables
+
+Note: Make sure your Go version is compatible with Vercel's Go runtime (currently supports Go 1.16 and above).
 
 ## Changelog
 
