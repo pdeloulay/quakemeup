@@ -2,13 +2,21 @@
 
 Real-time earthquake monitoring and alert system that keeps you informed about seismic activities worldwide.
 
-## Color Palette
-
---bittersweet: #ef6461ff;
---earth-yellow: #e4b363ff;
---antiflash-white: #e8e9ebff;
---alabaster: #e0dfd5ff;
---onyx: #313638ff;
+## Table of Contents
+- [Features](#features)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Environment Setup](#environment-setup)
+  - [Installation](#installation)
+  - [Running the Application](#running-the-application)
+- [API Documentation](#api-documentation)
+- [Mobile Support](#mobile-support)
+- [Development](#development)
+  - [Color Palette](#color-palette)
+  - [Security Considerations](#security-considerations)
+  - [Contributing](#contributing)
+- [Changelog](#changelog)
+- [License](#license)
 
 ## Features
 
@@ -19,7 +27,167 @@ Real-time earthquake monitoring and alert system that keeps you informed about s
 - Geolocation support
 - Interactive world map showing recent earthquakes
 
+## Getting Started
+
+### Prerequisites
+
+- Go 1.16 or higher
+- Modern web browser with geolocation support
+- USGS Earthquake API access
+- Git
+
+### Environment Setup
+
+1. Create a `.env` file in the root directory:
+```env
+# Server Configuration
+PORT=8080
+ENV=development
+
+# USGS API Configuration
+USGS_API_ENDPOINT=https://earthquake.usgs.gov/fdsnws/event/1/query
+USGS_API_TIMEOUT=30
+
+# Mapbox Configuration (required for map visualization)
+MAPBOX_TOKEN=your_mapbox_token_here
+
+# Security
+SESSION_SECRET=your_session_secret_here
+
+# Optional: Push Notifications (if enabled)
+VAPID_PUBLIC_KEY=your_vapid_public_key
+VAPID_PRIVATE_KEY=your_vapid_private_key
+```
+
+2. Update the environment variables:
+   - Replace `your_mapbox_token_here` with your Mapbox access token
+   - Generate a secure random string for `SESSION_SECRET`
+   - If using push notifications, add VAPID keys
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/quakemeup.git
+cd quakemeup
+```
+
+2. Install dependencies:
+```bash
+go mod download
+```
+
+### Running the Application
+
+1. Start the server:
+```bash
+go run main.go
+```
+
+2. Visit `http://localhost:8080` in your browser
+
+## API Documentation
+
+### Endpoints
+
+#### Page Routes
+- `GET /` - Main landing page
+- `GET /about` - About page with mission statement and partner organizations
+- `GET /mapgl` - Interactive map page with real-time earthquake visualization
+- `GET /latest` - Latest earthquake alerts page
+- `GET /privacy` - Privacy policy page
+- `GET /terms` - Terms of service page
+
+#### API Routes
+
+##### Location API
+- `POST /api/location` - Store user location and preferences
+  - Request body:
+    ```json
+    {
+      "latitude": float64,
+      "longitude": float64,
+      "radius": int,        // in kilometers (max: 20,037 km)
+      "enableAlerts": bool,
+      "enablePush": bool
+    }
+    ```
+  - Response:
+    ```json
+    {
+      "status": "success",
+      "message": "Location stored successfully"
+    }
+    ```
+
+##### Earthquakes API
+- `GET /api/quakes` - Get earthquakes based on filters
+  - Query Parameters:
+    - `hours` (int, default: 24) - Time range in hours
+    - `minMagnitude` (float, default: 0.0) - Minimum earthquake magnitude
+    - `maxMagnitude` (float, default: 10.0) - Maximum earthquake magnitude
+    - `radius` (int, default: 100) - Search radius in kilometers
+  - Response: Array of earthquake objects
+    ```json
+    [
+      {
+        "magnitude": float64,
+        "place": string,
+        "time": string,      // ISO 8601 format
+        "latitude": float64,
+        "longitude": float64,
+        "depth": float64,    // in kilometers
+        "timeAgo": string,   // human-readable time
+        "distance": float64  // distance from user in km (if location provided)
+      }
+    ]
+    ```
+
+### Security Notes
+- All endpoints use secure session management
+- Location data is protected with mutex locks
+- Sessions are managed via secure HTTP-only cookies
+- API responses include proper CORS headers
+- Rate limiting is applied to prevent abuse
+
+## Mobile Support
+
+The application is fully responsive and optimized for mobile devices:
+- Touch-friendly navigation
+- Responsive layouts
+- Optimized performance
+- Mobile-first design approach
+- Geolocation support
+- Push notifications
+
+## Development
+
+### Color Palette
+
+```css
+--bittersweet: #ef6461ff;
+--earth-yellow: #e4b363ff;
+--antiflash-white: #e8e9ebff;
+--alabaster: #e0dfd5ff;
+--onyx: #313638ff;
+```
+
+### Security Considerations
+
+- User locations are stored in memory (in production, use a proper database)
+- Geolocation data is only used for alert purposes
+- Push notifications require explicit user permission
+- All sensitive operations are protected with mutex locks
+- Environment variables are used for sensitive configuration
+
 ## Changelog
+
+### [1.1.0] - 2025-07-03
+- Optimized map default zoom level to ~500km range view
+- Added favicon and apple-touch-icon support
+- Enhanced mobile web app capabilities with site manifest
+- Improved initial map view for better local earthquake monitoring
+- Updated map zoom levels for better user experience
 
 ### [1.0.0] - 2025-07-02
 - Added version management with `.version` file
@@ -229,53 +397,6 @@ Real-time earthquake monitoring and alert system that keeps you informed about s
 - Added world map background with earthquake pulse animation
 - Integrated Tailwind CSS for styling
 
-## Development
-
-### Prerequisites
-- Go 1.16 or higher
-- Modern web browser with geolocation support
-- USGS Earthquake API
-
-### Running the Application
-1. Clone the repository
-2. Run `go run main.go`
-3. Visit `http://localhost:8080` in your browser
-
-### API Endpoints
-- `GET /` - Main landing page
-- `POST /api/location` - Store user location and preferences
-  - Request body:
-    ```json
-    {
-      "latitude": float64,
-      "longitude": float64,
-      "radius": int,
-      "enableAlerts": bool,
-      "enablePush": bool
-    }
-    ```
-
-## Security Considerations
-- User locations are stored in memory (in production, use a proper database)
-- Geolocation data is only used for alert purposes
-- Push notifications require explicit user permission
-- All sensitive operations are protected with mutex locks
-
-## Mobile Support
-The application is fully responsive and optimized for mobile devices. Key features include:
-- Touch-friendly navigation
-- Responsive layouts
-- Optimized performance
-- Mobile-first design approach
-- Geolocation support
-- Push notifications
-
-## Contributing
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
-
 ## License
+
 This project is licensed under the MIT License - see the LICENSE file for details.

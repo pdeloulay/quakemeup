@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <title>Display a map on a webpage</title>
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png">
+    <link rel="manifest" href="/static/images/site.webmanifest">
+
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.12.0/mapbox-gl.js"></script>
 <style>
@@ -534,7 +539,7 @@ body { margin: 0; padding: 0; }
         container: 'map',
         style: 'mapbox://styles/pdeloulay/cmcmn7yxp005a01sq89mchuwx',
         projection: 'globe',
-        zoom: 2,
+        zoom: 5,
         center: [30, 15]
     });
 
@@ -547,10 +552,10 @@ body { margin: 0; padding: 0; }
             (position) => {
                 userLocation = [position.coords.longitude, position.coords.latitude];
                 
-                // Center map on user location
+                // Center map on user location with appropriate zoom for ~500km radius
                 map.flyTo({
                     center: userLocation,
-                    zoom: 2,
+                    zoom: 5,
                     essential: true
                 });
 
